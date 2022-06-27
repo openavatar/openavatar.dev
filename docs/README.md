@@ -113,9 +113,9 @@ document.querySelector("button").addEventListener("click", async (e) => {
     // Get the "user" session
     let session = await party.session("user")
     if (session) {
-      await party.disconnect()      // if logged in, log out
+      await party.disconnect("user")      // if logged in, log out
     } else {
-      await party.connect()         // if logged out, log in
+      await party.connect("user")         // if logged out, log in
     }
     await render()
   } catch (e) {
