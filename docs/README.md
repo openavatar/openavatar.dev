@@ -619,6 +619,11 @@ You will see a login screen where you can enter an NFT collection address and a 
 
 You can only login if you actually own the NFT.
 
+
+## 5. More examples
+
+Check out the [demo folder](https://github.com/privatepart/privateparty/tree/main/demo) on GitHub for more examples.
+
 ---
 
 # Install
