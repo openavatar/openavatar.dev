@@ -416,7 +416,6 @@ party.add("user", {
       // If the balance is 0, don't allow login
       throw new Error("must own at least one 'end of sartoshi'")
     }
-
   }
 })
 party.app.get("/", party.auth("user"), (req, res) => {
@@ -534,7 +533,7 @@ document.querySelector("button").addEventListener("click", async (e) => {
     let connection = await party.connect("user", {
       collection: document.querySelector("#collection").value,
       tokenId: document.querySelector("#id").value
-    })         // if logged out, log in
+    })
     console.log("connection", connection)
   }
   await render()
@@ -620,7 +619,261 @@ You will see a login screen where you can enter an NFT collection address and a 
 You can only login if you actually own the NFT.
 
 
-## 5. More examples
+## 5. Multiple roles
+
+Sometimes you may want to support multiple roles for a single account.
+
+For example, Alice may be a "user" in a web app, but she may also be the "admin" who can have an admin interface. Only those with an "admin" role can access the admin interface, while the rest of the users can only have the "user" role and access the user interface.
+
+Let's try building a minimal app that does that. We will build:
+
+1. Privateparty server
+2. User interface
+3. Admin inteface
+
+### Server
+
+```javascript
+const Privateparty = require('privateparty')
+const party = new Privateparty()
+
+// Add a "user" role => will automatically create the default the following endpoints:
+//
+//  session: "/admin/session",
+//  connect: "/admin/connect",
+//  disconnect: "/admin/disconnect",
+//
+party.add("user")
+
+// Add an "admin" role with custom endpoints:
+party.add("admin", {
+  session: "/admin/session",
+  connect: "/admin/connect",
+  disconnect: "/admin/disconnect",
+  authorize: (req, account) => {
+    // Currently anyone can login as admin, but you can add a logic to only allow certain addresses to login
+    return { admin: true }
+  }
+})
+
+// "user" interface => will display the index.html file
+party.app.get("/", party.auth("user"), (req, res) => {
+  res.sendFile(process.cwd() + "/index.html")
+})
+
+// "admin" interface => will display the admin.html file
+party.app.get("/admin", party.auth("admin"), (req, res) => {
+  res.sendFile(process.cwd() + "/admin.html")
+})
+party.app.listen(3000)
+```
+
+### User interface
+
+The user interface is accessible at http://localhost:3000 (route "/") and any account will be able to login.
+
+```html
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
+<style>
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<nav>
+  <h1>User page</h1>
+  <button></button>
+  <pre class='session'></pre>
+  <a href="/admin">go to admin dashboard</a>
+</nav>
+<script>
+const web3 = new Web3(window.ethereum)
+const party = new Privateparty({ web3 })
+const render = async () => {
+  let session = await party.session("user")
+  // if logged in (session.user exists), it's a logout button. if logged out, it's a login button.
+  document.querySelector("button").innerHTML = (session ? "logout" : "login")
+  // print the current session
+  document.querySelector(".session").innerHTML = JSON.stringify(session, null, 2)
+}
+document.querySelector("button").addEventListener("click", async (e) => {
+  let session = await party.session("user")
+  try {
+    if (session) {
+      await party.disconnect("user")      // if logged in, log out
+    } else {
+      await party.connect("user")         // if logged out, log in
+    }
+    await render()
+  } catch (e) {
+    document.querySelector(".session").innerHTML = e.message
+  }
+})
+render()
+</script>
+</body>
+</html>
+```
+
+### Admin interface
+
+The admin interface is accessible at http://localhost:3000/admin (route "/admin"). You'll be able to login as "admin". The privateparty server code above allows anyone to login as admin, but you can update the `authorize()` part to authorize only a limited set of addresses to login as admin.
+
+```html
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
+<style>
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<nav>
+  <h1>Admin page</h1>
+  <button></button>
+  <pre class='session'></pre>
+  <a href="/">go to user dashboard</a>
+</nav>
+<script>
+const web3 = new Web3(window.ethereum)
+const party = new Privateparty({ web3 })
+const render = async () => {
+  let session = await party.session("admin")
+  // if logged in (session.user exists), it's a logout button. if logged out, it's a login button.
+  document.querySelector("button").innerHTML = (session ? "logout" : "login")
+  // print the current session
+  document.querySelector(".session").innerHTML = JSON.stringify(session, null, 2)
+}
+document.querySelector("button").addEventListener("click", async (e) => {
+  let session = await party.session("admin")
+  try {
+    if (session) {
+      await party.disconnect("admin")      // if logged in, log out
+    } else {
+      await party.connect("admin")         // if logged out, log in
+    }
+    await render()
+  } catch (e) {
+    document.querySelector(".session").innerHTML = e.message
+  }
+})
+render()
+</script>
+</body>
+</html>
+```
+
+## 6. Cross origin login
+
+Sometimes your frontend code may be hosted on a different domain than the backend.
+
+In this case you can use the built-in CORS support to allow ONLY the domain you specify to authenticate using your privateparty server.
+
+Let's set up:
+
+1. A privateparty server at port 3007
+2. A frontend website running at port 8080
+
+The frontend website at 8080 will try to authenticate against the privateparty server at http://localhost:3007
+
+### Server
+
+Save the following code as `index.js`:
+
+```javascript
+const Privateparty = require('privateparty')
+const party = new Privateparty({
+  cors: {
+    credentials: true,
+    origin: ["http://localhost:8080"] // Allow port 8080 to access the server cross origin
+  }
+})
+party.add("user")
+party.app.listen(3000)
+```
+
+### Client
+
+Save the following code as `index.html`:
+
+
+```html
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
+<style>
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<nav>
+  <button></button>
+  <pre class='session'></pre>
+</nav>
+<script>
+const web3 = new Web3(window.ethereum)
+const party = new Privateparty({
+  web3,
+  host: "http://localhost:3000"
+})
+const render = async () => {
+  let session = await party.session("user")
+  // if logged in (session.user exists), it's a logout button. if logged out, it's a login button.
+  document.querySelector("button").innerHTML = (session ? "logout" : "login")
+  // print the current session
+  document.querySelector(".session").innerHTML = JSON.stringify(session, null, 2)
+}
+document.querySelector("button").addEventListener("click", async (e) => {
+  let session = await party.session("user")
+  try {
+    if (session) {
+      await party.disconnect("user")      // if logged in, log out
+    } else {
+      await party.connect("user")         // if logged out, log in
+    }
+    await render()
+  } catch (e) {
+    document.querySelector(".session").innerHTML = e.message
+  }
+})
+render()
+</script>
+</body>
+</html>
+```
+
+The only differnt part here is the initialization step:
+
+```javascript
+const party = new Privateparty({
+  web3,
+  host: "http://localhost:3000"
+})
+```
+
+By default, the privateparty.js client makes requests to the same domain. But you can customize the endpoint by setting the `host` attribute when initializing a Privateparty client.
+
+### Run
+
+First start the privateparty server:
+
+```
+node index
+```
+
+Now let's launch the `index.html` at port 8080 using:
+
+```
+npx http-server
+```
+
+Now open the browser at http://localhost:8080 and it should work as intended.
+
+## 7. More examples
 
 Check out the [demo folder](https://github.com/privatepart/privateparty/tree/main/demo) on GitHub for more examples.
 
@@ -675,12 +928,17 @@ For the backend, you need to use the package `privateparty`. Simply instantiate 
 #### syntax
 
 ```javascript
-const party = new Privateparty()
+const party = new Privateparty(config)
 ```
 
 ##### parameters
 
-none
+- `config`: privateparty server configuration
+  - `secret`: **(optional)** a string used for signing cookies
+    - See https://github.com/expressjs/cookie-parser#cookieparsersecret-options
+    - If not specified, it will autogenerate a secret everytime the server restarts using [uuid](https://github.com/uuidjs/uuid).
+  - `cors`: **(optional)** If you want to support CORS (cross origin requests) pass this attribute.
+    - See https://github.com/expressjs/cors#configuration-options
 
 ##### return value
 
@@ -689,6 +947,57 @@ none
   - `express`: the express module
   - `auth`: authentication & authorization function
   - `add`: a function to add authorization groups
+
+#### examples
+
+##### 1. minimal server
+
+```javascript
+const party = new Privateparty()
+```
+
+##### 2. server with a fixed signing secret
+
+```javascript
+const party = new Privateparty({
+  secret: "top secret"
+})
+```
+
+##### 3. cross origin login support
+
+In the following example, we have a privateparty server running at port 3001, and it allows requests from not just the port 3001 but also 3000, since we specified the origin http://localhost:3000
+
+```javascript
+const party = new Privateparty({
+  cors: {
+    credentials: true,
+    origin: ["http://localhost:3000"]
+  }
+})
+party.listen(3001)
+```
+
+##### 4. cross origin login with dynamic origin parsing
+
+Using the dynamic origin configuration option from the CORS module (https://github.com/expressjs/cors#configuring-cors-w-dynamic-origin), you can dynamically parse request origins and authorize:
+
+```javascript
+const party = new Privateparty({
+  cors: {
+    credentials: true,
+    origin: (origin, callback) => {
+      // allow ALL localhost connections
+      if (/localhost:[0-9]+/i.test(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error())
+      }
+    }
+  }
+})
+party.listen(3001)
+```
 
 
 ### add()
@@ -1028,6 +1337,7 @@ const party = new Privateparty(config)
 
 - `config`: configuration
   - `web3`: an initialized web3 object
+  - `host`: **(optional)** specify the host in case you wish to make a cross-origin request to a privateparty server hosted on another domoain.
 
 ##### return value
 
@@ -1035,9 +1345,27 @@ const party = new Privateparty(config)
 
 #### examples
 
+##### 1. basic
+
 ```javascript
 const web3 = new Web3(window.ethereum)
 const party = new Privateparty({ web3: web3 })
+```
+
+##### 2. cross origin connection
+
+Let's say your privateparty server is running at https://myprivatepartyserver.com - You can connect to it using the `host` attribute.
+
+> **NOTE**
+>
+> You MUST set the CORS support on the server side to make this work http://localhost:56503/#/?id=_3-cross-origin-login-support
+
+```javascript
+const web3 = new Web3(window.ethereum)
+const party = new Privateparty({
+  web3: web3,
+  host: "https://myprivatepartyserver.com"
+})
 ```
 
 ---
