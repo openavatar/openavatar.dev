@@ -86,7 +86,7 @@ Now let's create a file named `index.html` that talks to the server:
 ```html
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
 <style>
 .hidden { display: none; }
@@ -98,8 +98,7 @@ Now let's create a file named `index.html` that talks to the server:
   <pre class='session'></pre>
 </nav>
 <script>
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 const render = async () => {
   // Get the "user" session
   let session = await party.session("user")
@@ -138,6 +137,88 @@ node index
 ```
 
 And open the browser at http://localhost:3000
+
+You will see it working, like this:
+
+![desktoplogin.gif](desktoplogin.gif)
+
+## 4. Mobile wallet support
+
+So far we've just used the default wallet installed on your desktop browser. Now let's see how we can support mobile wallets.
+
+To support mobile wallets we're going to use [Walletconnect](https://walletconnect.com/). You don't have to learn how to use Walletconnect. You simply need to pass an attribute named `walletconnect` when creating the `Privateparty` instance, like this:
+
+```javascript
+const party = new Privateparty({
+  walletconnect: <Your Infura Key>
+})
+```
+
+First sign up to [Infura](https://infura.io) and create a project and get the project ID.
+
+Then let's go back to the frontend example above and just pass the `walletconnect` attribute when initializing the `Privateparty` instance:
+
+```html
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
+<style>
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<nav>
+  <button></button>
+  <pre class='session'></pre>
+</nav>
+<script>
+const party = new Privateparty({
+  walletconnect: <USE YOUR OWN INFURA KEY>
+})
+const render = async () => {
+  // Get the "user" session
+  let session = await party.session("user")
+  // if logged in (session.user exists), it's a logout button. if logged out, it's a login button.
+  document.querySelector("button").innerHTML = (session ? "logout" : "login")
+  // print the current session
+  document.querySelector(".session").innerHTML = JSON.stringify(session, null, 2)
+}
+document.querySelector("button").addEventListener("click", async (e) => {
+  try {
+    // Get the "user" session
+    let session = await party.session("user")
+    if (session) {
+      await party.disconnect("user")      // if logged in, log out
+    } else {
+      await party.connect("user")         // if logged out, log in
+    }
+    await render()
+  } catch (e) {
+    // display error if something went wrong
+    document.querySelector(".session").innerHTML = e.message
+  }
+})
+render()
+</script>
+</body>
+</html>
+```
+
+One more thing, Walletconnect does not seem to work on localhost so you will need to get an HTTPS URL for testing. You can do this by:
+
+1. Deploying the site publicly to an HTTPS domain (all web hosting providers support this by default)
+2. Testing locally with things like [ngrok](https://ngrok.com/) or [localtunnel](https://theboroer.github.io/localtunnel-www/)
+
+Let's try the second approach and test this locally using localtunnel. Here are the steps to follow:
+
+1. Start the privateparty server: `node index`
+2. Start a localtunnel that points to the privateparty server: `npx lt --port 3000`
+
+This will give you a public HTTPS url you can test with. Copy and paste it into your browser. You'll see something similar to the following animation (Here I'm demonstrating logging in with two different mobile wallets Metamask mobile and Rainbow wallet):
+
+![mobilelogin.gif](mobilelogin.gif)
+
 
 ---
 
@@ -195,7 +276,7 @@ Now let's create a file named `index.html` that talks to the server:
 ```html
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
 <style>
 .hidden { display: none; }
@@ -207,8 +288,7 @@ Now let's create a file named `index.html` that talks to the server:
   <pre class='session'></pre>
 </nav>
 <script>
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 const render = async () => {
   let session = await party.session("user")
   // if logged in (session.user exists), it's a logout button. if logged out, it's a login button.
@@ -249,7 +329,7 @@ let's first build the frontend. It's the same as last example. Create a file nam
 ```html
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
 <style>
 .hidden { display: none; }
@@ -261,8 +341,7 @@ let's first build the frontend. It's the same as last example. Create a file nam
   <pre class='session'></pre>
 </nav>
 <script>
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 const render = async () => {
   let session = await party.session("user")
   // if logged in (session.user exists), it's a logout button. if logged out, it's a login button.
@@ -401,7 +480,7 @@ You can use this feature to implement token gated communities and websites.
 const Privateparty = require('privateparty')
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 const web3 = createAlchemyWeb3(<YOUR JSON-RPC ENDPOINT URL>)
-const party = new Privateparty(web3)
+const party = new Privateparty()
 party.add("user", {
   authorize: async (req, account) => {
     console.log("account", account)
@@ -430,7 +509,7 @@ party.app.listen(3000)
 ```html
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
 <style>
 .hidden { display: none; }
@@ -442,8 +521,7 @@ party.app.listen(3000)
   <pre class='session'></pre>
 </nav>
 <script>
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 const render = async () => {
   let session = await party.session("user")
   // if logged in (session exists), it's a logout button. if logged out, it's a login button.
@@ -490,7 +568,7 @@ let's first create a file named `index.html` that talks to the server:
 ```html
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
 <style>
 .hidden { display: none; }
@@ -507,8 +585,7 @@ nav { display: flex; align-items: center; }
 </nav>
 <pre class='session'></pre>
 <script>
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 const render = async () => {
   let session = await party.session("user")
   console.log("session", session)
@@ -585,7 +662,7 @@ const fetch = require('cross-fetch')
 const Privateparty = require('privateparty')
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 const web3 = createAlchemyWeb3(<YOUR JSON-RPC ENDPOINT URL>)
-const party = new Privateparty(web3)
+const party = new Privateparty()
 party.add("user", {
   authorize: async (req, account) => {
     //  req.body.payload := {
@@ -675,7 +752,7 @@ The user interface is accessible at http://localhost:3000 (route "/") and any ac
 ```html
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
 <style>
 .hidden { display: none; }
@@ -689,8 +766,7 @@ The user interface is accessible at http://localhost:3000 (route "/") and any ac
   <a href="/admin">go to admin dashboard</a>
 </nav>
 <script>
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 const render = async () => {
   let session = await party.session("user")
   // if logged in (session.user exists), it's a logout button. if logged out, it's a login button.
@@ -724,7 +800,7 @@ The admin interface is accessible at http://localhost:3000/admin (route "/admin"
 ```html
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
 <style>
 .hidden { display: none; }
@@ -738,8 +814,7 @@ The admin interface is accessible at http://localhost:3000/admin (route "/admin"
   <a href="/">go to user dashboard</a>
 </nav>
 <script>
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 const render = async () => {
   let session = await party.session("admin")
   // if logged in (session.user exists), it's a logout button. if logged out, it's a login button.
@@ -803,7 +878,7 @@ Save the following code as `index.html`:
 ```html
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
 <style>
 .hidden { display: none; }
@@ -815,9 +890,7 @@ Save the following code as `index.html`:
   <pre class='session'></pre>
 </nav>
 <script>
-const web3 = new Web3(window.ethereum)
 const party = new Privateparty({
-  web3,
   host: "http://localhost:3000"
 })
 const render = async () => {
@@ -850,7 +923,6 @@ The only differnt part here is the initialization step:
 
 ```javascript
 const party = new Privateparty({
-  web3,
   host: "http://localhost:3000"
 })
 ```
@@ -1336,8 +1408,8 @@ const party = new Privateparty(config)
 ##### parameters
 
 - `config`: configuration
-  - `web3`: an initialized web3 object
   - `host`: **(optional)** specify the host in case you wish to make a cross-origin request to a privateparty server hosted on another domoain.
+  - `walletconnect`: **(optional)** Specify this field to support mobile and desktop wallets. The `walletconnect` attribute is the [Walletconnect infuraId attribute](https://github.com/Web3Modal/web3modal/blob/master/docs/providers/walletconnect.md?plain=1#L22) (Go to [Infura](https://infura.io/) to sign up and get the Infura project ID).
 
 ##### return value
 
@@ -1348,8 +1420,7 @@ const party = new Privateparty(config)
 ##### 1. basic
 
 ```javascript
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3: web3 })
+const party = new Privateparty()
 ```
 
 ##### 2. cross origin connection
@@ -1361,10 +1432,19 @@ Let's say your privateparty server is running at https://myprivatepartyserver.co
 > You MUST set the CORS support on the server side to make this work http://localhost:56503/#/?id=_3-cross-origin-login-support
 
 ```javascript
-const web3 = new Web3(window.ethereum)
 const party = new Privateparty({
-  web3: web3,
   host: "https://myprivatepartyserver.com"
+})
+```
+
+
+##### 3. mobile & desktop wallet support
+
+To support mobile and desktop wallets, we need to use [Walletconnect](https://walletconnect.com/). For this, we need to get a project ID from [Infura](https://infura.io) and set it as the `walletconnect` attribute. Example:
+
+```javascript
+const party = new Privateparty({
+  walletconnect: "27e484dcd9e3efcfd25a83a78777cdf1"   // USE YOUR OWN INFURA ID!
 })
 ```
 
@@ -1418,8 +1498,7 @@ We can automatically connect to those endpoints simply by specifying the name of
 
 ```javascript
 // Browser code
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3: web3 })
+const party = new Privateparty()
 let session = await party.connect("user")
 if (session) document.write("logged in: " + session.account)
 ```
@@ -1468,8 +1547,7 @@ party.app.listen(3000)
 Now, from the browser, lets try to login as admin:
 
 ```javascript
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 let session = await party.connect("admin")
 ```
 
@@ -1484,8 +1562,7 @@ The `party.connect("admin")`:
 Often, the authorization logic may require more than just the user account. For example, the user may authenticate with a specific NFT (`tokenId` and `contract`), in which case the frontend needs to pass more data to the Privateparty server. Here's an example:
 
 ```javascript
-const web3 = new Web3(window.ethereum)
-const party = new Privateparty({ web3 })
+const party = new Privateparty()
 await party.connect("user", {
   contract: "0x6866ed9a183f491024692971a8f78b048fb6b89b",
   tokenId: "55005454344647406361450320675654878134478584534017520891306338141495783002503"
@@ -1498,7 +1575,7 @@ The server may implement an `authorize(req, account)` function in the engine tha
 const Privateparty = require('privateparty')
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 const web3 = createAlchemyWeb3(<YOUR JSON-RPC ENDPOINT URL>)
-const party = new Privateparty(web3)
+const party = new Privateparty()
 const { app, express, auth } = new Privateparty({
   engines: {
     user: {
