@@ -469,7 +469,7 @@ Using the same principle, we can implement logins authorized by NFT ownership. F
 
 You can use this feature to implement token gated communities and websites.
 
-### Client
+### Server
 
 ```javascript
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -504,7 +504,7 @@ party.app.get("/", party.auth("user"), (req, res) => {
 party.app.listen(3000)
 ```
 
-### Server
+### Client
 
 ```html
 <html>
