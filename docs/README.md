@@ -478,27 +478,22 @@ You can use this feature to implement token gated communities and websites.
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 const Privateparty = require('privateparty')
-const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
-const web3 = createAlchemyWeb3(<YOUR JSON-RPC ENDPOINT URL>)
 const party = new Privateparty()
-party.add("user", {
-  authorize: async (req, account) => {
-    console.log("account", account)
-    // take a snapshot of ERC721 NFT balance (End of Sartoshi)
-    // ONLY allow login if the account holds AT LEAST 1
-    const end_of_sartoshi = "0xf7d134224a66c6a4ddeb7dee714a280b99044805"
-    let balance = await party.contract(web3, party.abi.erc721, end_of_sartoshi).balanceOf(account).call()
-    console.log("balance", balance)
-    if (balance > 0) {
-      return { balance: balance }
-    } else {
-      // If the balance is 0, don't allow login
-      throw new Error("must own at least one 'end of sartoshi'")
+party.add("mfer", {
+  contracts: {
+    sartoshi: {
+      address: "0xf7d134224a66c6a4ddeb7dee714a280b99044805",
+      rpc: "https://eth-mainnet.alchemyapi.io/v2/NgVL3BEuBntBU4cbzjh3FxBIDO8dZM4y",
+      abi: party.abi.erc721
     }
+  },
+  authorize: async (req, account, contracts) => {
+    let balance = await contracts.sartoshi.balanceOf(account).call()
+    if (balance > 0) return { balance: balance }
+    else throw new Error("must own at least one 'end of sartoshi'")
   }
 })
-party.app.get("/", party.auth("user"), (req, res) => {
-  console.log("session", req.session)
+party.app.get("/", party.protect("mfer"), (req, res) => {
   res.sendFile(process.cwd() + "/index.html")
 })
 party.app.listen(3000)
@@ -516,34 +511,8 @@ party.app.listen(3000)
 </style>
 </head>
 <body>
-<nav>
-  <button></button>
-  <pre class='session'></pre>
-</nav>
-<script>
-const party = new Privateparty()
-const render = async () => {
-  let session = await party.session("user")
-  // if logged in (session exists), it's a logout button. if logged out, it's a login button.
-  document.querySelector("button").innerHTML = (session ? "logout" : "login")
-  // print the current session
-  document.querySelector(".session").innerHTML = JSON.stringify(session, null, 2)
-}
-document.querySelector("button").addEventListener("click", async (e) => {
-  try {
-    let session = await party.session("user")
-    if (session) {
-      await party.disconnect("user")      // if logged in, log out
-    } else {
-      await party.connect("user")         // if logged out, log in
-    }
-    await render()
-  } catch (e) {
-    document.querySelector(".session").innerHTML = e.message
-  }
-})
-render()
-</script>
+<h1>Some exclusive content!</h1>
+<div>This page is protected by Privateparty "mfers" role</div>
 </body>
 </html>
 ```
@@ -716,17 +685,17 @@ const party = new Privateparty()
 
 // Add a "user" role => will automatically create the default the following endpoints:
 //
-//  session: "/admin/session",
-//  connect: "/admin/connect",
-//  disconnect: "/admin/disconnect",
+//  session: "/privateparty/admin/session",
+//  connect: "/privateparty/admin/connect",
+//  disconnect: "/privateparty/admin/disconnect",
 //
 party.add("user")
 
 // Add an "admin" role with custom endpoints:
 party.add("admin", {
-  session: "/admin/session",
-  connect: "/admin/connect",
-  disconnect: "/admin/disconnect",
+  session: "/privateparty/admin/session",
+  connect: "/privateparty/admin/connect",
+  disconnect: "/privateparty/admin/disconnect",
   authorize: (req, account) => {
     // Currently anyone can login as admin, but you can add a logic to only allow certain addresses to login
     return { admin: true }
@@ -1011,6 +980,8 @@ const party = new Privateparty(config)
     - If not specified, it will autogenerate a secret everytime the server restarts using [uuid](https://github.com/uuidjs/uuid).
   - `cors`: **(optional)** If you want to support CORS (cross origin requests) pass this attribute.
     - See https://github.com/expressjs/cors#configuration-options
+  - `app`: **(optional)** Inject an existing instantiated express.js app instance
+  - `express`: **(optional)** Inject an existin express module
 
 ##### return value
 
@@ -1018,7 +989,10 @@ const party = new Privateparty(config)
   - `app`: an "app" instance created internally by calling `const app = express()`
   - `express`: the express module
   - `auth`: authentication & authorization function
+  - `protect`: authentication & authorization function + error handling
   - `add`: a function to add authorization groups
+
+> the `auth` method only tells you if the authorization results in a legitimate session or not, whereas the `protect` method is used to do what `auth` does but also automatically redirect to a logged out page or display a logged out page.
 
 #### examples
 
@@ -1071,6 +1045,36 @@ const party = new Privateparty({
 party.listen(3001)
 ```
 
+##### 5. integrate with an existing express.js app
+
+```javascript
+const express = require('express')
+const app = express()
+const port = 3000
+
+// Inject express app to Privateparty!
+const party = new Privateparty({
+  app: app,
+})
+// Define the authorization logic
+party.add("user", {
+  authorize: (req, account) => {
+    // only allow 0xf7d134224a66c6a4ddeb7dee714a280b99044805 to log in
+    if (account === "0xf7d134224a66c6a4ddeb7dee714a280b99044805") {
+      return { authorized: true }
+    } else {
+      throw new Error("not allowed")
+    }
+  }
+})
+// Protect the app with the authorization role!
+app.get('/', party.protect("user"), (req, res) => {
+  res.send('Hello World!')
+})
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
+```
 
 ### add()
 
@@ -1086,19 +1090,72 @@ await party.add(name, config)
 
 - `name`: group name (must be unique per group)
 - `config`: configuration options for each group
-  - `session`: The GET path to query the current session for this engine. (default: `/session`)
-  - `connect`: The POST path to create a session for this engine (default: `/connect`)
-  - `disconnect`: The POST path to destroy a session for this engine (default: `/disconnect`)
-  - `authorize`: a function that takes two arguments `req` (The incoming request object passed from express) and `account` (The authenticated wallet address). 
+  - `session`: (optional) The GET path to query the current session for this engine. (default: `/privateparty/session/${name}`)
+  - `connect`: (optional) The POST path to create a session for this engine (default: `/privateparty/connect/${name}`)
+  - `disconnect`: (optional) The POST path to destroy a session for this engine (default: `/privateparty/disconnect/${name}`)
+  - `authorize`: a function that takes two or more arguments `req` (The incoming request object passed from express), `account` (The authenticated wallet address), and optionally `contracts` (only when you specify another attribute `contract`, explained below). 
     - To disallow a session based on the request, simply throw an error in the function.
     - To authorize the session, don't throw a function. Additionally, the return value of this function will be automatically set as the `auth` attribute of the session
   - `expire`: (optional) The session duration (how many seconds until a session expires). The default is `1000 * 60 * 60 * 24 * 30` (30 days).
+  - `tokens`: (optional) an array of access tokens to allow
+  - `contracts`: (optional) a declarative object for defining one or more contracts, which will be initialized and injected in to the `authoirze()` handler
 
 
 ##### return value
 
 none
 
+##### example
+
+```javascript
+const Privateparty = require('privateparty')
+const party = new Privateparty()
+party.add("user", {
+
+  session: "/privateparty/session/user",            // custom path for the session route
+  connect: "/privateparty/connect/user",            // custom path for the connect route 
+  disconnect: "/privateparty/disconnect/user",      // custom path for the disconnect route
+
+  // Define as many contracts as you want, using <name>: <description object>
+  contracts: {
+    sartoshi: {
+      address: "0xf7d134224a66c6a4ddeb7dee714a280b99044805",
+      rpc: process.env.RPC,
+      abi: party.abi.erc721
+    }
+  },
+
+  authorize: async (req, account, contracts) => {
+
+    // The "request" is the full HTTP request object (express.js)
+    // The "account" is the account derived from the incoming signature
+    // The "contracts" is an object made up of instantiated Web3.js contract objects, determined by the "contracts" attribute above
+
+    let balance = await contracts.sartoshi.methods.balanceOf(account).call()
+    console.log("balance", balance)
+    if (balance > 0) {
+      return { balance: balance }
+    } else {
+      throw new Error("must own at least one 'end of sartoshi'")
+    }
+  },
+
+  expire: 1000 * 60 * 60 * 24,   // expire after 1 day
+
+  // access tokens for API access
+  tokens: [
+    "01127c36-32fa-4c85-b6da-f720796fe679",
+    "35161a5c-60f0-4809-8b49-1a662247f5b3"
+  ]
+  
+
+})
+party.app.get("/", party.auth("user"), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(process.cwd() + "/index.html")
+})
+party.app.listen(3000)
+```
 
 ### auth()
 
@@ -1107,15 +1164,15 @@ The authorization middleware you can add to any route.
 To add authorization logic to any route, you need to:
 
 1. First define an authrorization group and its behavior through the `add()` method
-2. Then make use of the group by calling `auth(name)`
+2. Then make use of the group by calling `party.auth(name)`
 
 #### syntax
 
 ```javascript
-party.app.get(route1, auth(name), (req, res) => {
+party.app.get(route1, party.auth(name), (req, res) => {
   ...
 })
-party.app.post(route2, auth(name), (req, res) => {
+party.app.post(route2, party.auth(name), (req, res) => {
   ...
 })
 ```
@@ -1141,9 +1198,9 @@ party.app.get("/", party.auth("user"), (req, res) => {
 ```
 
 1. The `party.add("user"` line will create a group named "user", which automatically creates the following routes:
-    - `POST /connect`
-    - `POST /disconnect`
-    - `GET /session`
+    - `POST /privateparty/connect`
+    - `POST /privateparty/disconnect`
+    - `GET /privateparty/session`
 2. Then the express app instance (`party.app`) handles the `GET /` request. But before that, it goes through the `party.auth("user")` middleware.
 3. Since the `party.add("user")` did not specify any authorization logic, it will just allow all requests.
 4. Therefore, when a user first visits the `/` route, the `req.session` will be null but...
@@ -1164,16 +1221,16 @@ const allowed = [
 ]
 const party = new Privateparty()
 party.add("user", {
-  session: "/session",
-  connect: "/connect",
-  disconnect: "/disconnect",
+  session: "/privateparty/session",
+  connect: "/privateparty/connect",
+  disconnect: "/privateparty/disconnect",
   authorize: async (req, account) => {
     if (!allowed.includes(account) {
       throw new Error("not allowed")
     }
   }
 })
-party.app.get("/", auth("user"), (req, res) => {
+party.app.get("/", party.auth("user"), (req, res) => {
   console.log("session", req.session)
   res.sendFile(process.cwd() + "/index.html")
 })
@@ -1183,7 +1240,7 @@ party.app.listen(3000)
 Note that we are:
 
 1. adding a group named `"user"`
-2. and then using the group in the `party.app.get("/", auth("user", (req, res) => { . . . })` handler.
+2. and then using the group in the `party.app.get("/", party.auth("user", (req, res) => { . . . })` handler.
 
 
 ##### 3. Multiple auth engines
@@ -1200,15 +1257,14 @@ const Privateparty = require('privateparty')
 const ADMINS = ["0x502b2fe7cc3488fcff2e16158615af87b4ab5c41"]
 const party = new Privateparty()
 party.add("user", {
-  session: "/session",
-    connect: "/connect",
-    disconnect: "/disconnect",
-  },
+  session: "/privateparty/session",
+  connect: "/privateparty/connect",
+  disconnect: "/privateparty/disconnect",
 })
 party.add("admin", {
-  session: "/admin/session",
-  connect: "/admin/connect",
-  disconnect: "/admin/disconnect",
+  session: "/privateparty/admin/session",
+  connect: "/privateparty/admin/connect",
+  disconnect: "/privateparty/admin/disconnect",
   authorize: async (req, account) => {
     if (ADMINS.includes(account)) {
       return { admin: true }
@@ -1217,11 +1273,11 @@ party.add("admin", {
     } 
   }
 })
-party.app.get("/", auth("user"), (req, res) => {
+party.app.get("/", party.auth("user"), (req, res) => {
   console.log("session", req.session)
   res.sendFile(process.cwd() + "/index.html")
 })
-party.app.get("/admin", auth("admin"), (req, res) => {
+party.app.get("/admin", party.auth("admin"), (req, res) => {
   console.log("session", req.session)
   res.sendFile(process.cwd() + "/index.html")
 })
@@ -1232,6 +1288,267 @@ Note that we have two `GET` route handlers here:
 
 1. `GET /`: The normal route for normal users. Because we're using `auth("user")`, it will use the `user` group.
 2. `GET /admin`: The page where the admins can login. Because we're using `auth("admin")`, it will use the `admin` group.
+
+
+### protect()
+
+Like `auth()`, but automatically redirects to the built-in login page if not authorized.
+
+> The `auth()` method returns a `null` value for `req.session` when not authorized, and that's all. The `protect()` method actually redirects to the login page.
+
+To add the protection logic to any route, you need to:
+
+1. First define an authrorization group and its behavior through the `add()` method
+2. Then make use of the group by calling `party.protect(name)`
+
+#### syntax
+
+
+```javascript
+party.protect(name, handler)
+```
+
+Example usage:
+
+```javascript
+party.app.get(route1, party.protect(name), (req, res) => {
+  ...
+})
+party.app.post(route2, party.protect(name), (req, res) => {
+  ...
+})
+```
+
+
+
+##### parameters
+
+- `name`: The authorization group name to use for the route handler
+- `handler`: The handler object, which describes what to do when the authorization has failed
+  - `redirect`: The web route to redirect to. For example you can set up an additional route that displays a web page when logged out.
+  - `render`: The HTML file path to render when logged out.
+  - `json`: The JSON to return when the request was made as an API request (not a website)
+
+The difference between the `redirect` and the `render` option is that, the `redirect` sends the user to a different designated route (for example a `/login` route), whereas `render` DOES NOT take the user to any other URL but just displays the supplied HTML.
+
+#### examples
+
+All examples in this section are the same as the `auth()` examples, except that you're using `party.protect()` instead of `party.auth()`.
+
+##### 1. Default protection
+
+The following example simply authenticates a user's account based on the wallet signature.
+
+```javascript
+const party = new Privateparty()
+party.add("user")
+party.app.get("/", party.protect("user"), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(process.cwd() + "/index.html")
+})
+```
+
+1. The `party.add("user"` line will create a group named "user", which automatically creates the following routes:
+    - `POST /privateparty/connect`
+    - `POST /privateparty/disconnect`
+    - `GET /privateparty/session`
+2. Then the express app instance (`party.app`) handles the `GET /` request. But before that, it goes through the `party.protect("user")` middleware.
+3. Since the `party.add("user")` did not specify any authorization logic, it will just allow all requests.
+4. Therefore, when a user first visits the `/` route, the `req.session` will be null but...
+3. After authenticating from the frontend, the `req.session` will contain `{ "user": { "account": <user address> } }`
+
+Unlike the `auth()` example, when you first visit the `/` route, Privateparty will automatically redirect you to its built-in login page.
+
+##### 2. Authorization
+
+By default, Privateparty logs everyone in. But often you will want to only allow certain people in.
+
+You can achieve this with an `authorize(req, account)` function:
+
+```javascript
+const Privateparty = require('privateparty')
+const allowed = [
+  "0xab3b229eb4bcff881275e7ea2f0fd24eeac8c83a",
+  "0x1ad91ee08f21be3de0ba2ba6918e714da6b45836",
+  "0x829bd824b016326a401d083b33d092293333a830"
+]
+const party = new Privateparty()
+party.add("user", {
+  session: "/privateparty/session",
+  connect: "/privateparty/connect",
+  disconnect: "/privateparty/disconnect",
+  authorize: async (req, account) => {
+    if (!allowed.includes(account) {
+      throw new Error("not allowed")
+    }
+  }
+})
+party.app.get("/", party.protect("user"), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(process.cwd() + "/index.html")
+})
+party.app.listen(3000)
+```
+
+Note that we are:
+
+1. adding a group named `"user"`
+2. and then using the group in the `party.app.get("/", party.protect("user", (req, res) => { . . . })` handler.
+
+
+##### 3. Multiple protection engines
+
+Sometimes you may want to serve different content based on different roles. You can create roles with engines.
+
+In the following code, we are using 2 engines:
+
+1. user: normal user login flow. sign everyone in
+2. admin: admin user login flow. check if the account is included in the ADMIN array, and if not, throw an error
+
+```javascript
+const Privateparty = require('privateparty')
+const ADMINS = ["0x502b2fe7cc3488fcff2e16158615af87b4ab5c41"]
+const party = new Privateparty()
+party.add("user", {
+  session: "/privateparty/session",
+    connect: "/privateparty/connect",
+    disconnect: "/privateparty/disconnect",
+  },
+})
+party.add("admin", {
+  session: "/privateparty/admin/session",
+  connect: "/privateparty/admin/connect",
+  disconnect: "/privateparty/admin/disconnect",
+  authorize: async (req, account) => {
+    if (ADMINS.includes(account)) {
+      return { admin: true }
+    } else {
+      throw new Error("not an admin")
+    } 
+  }
+})
+party.app.get("/", party.protect("user"), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(process.cwd() + "/index.html")
+})
+party.app.get("/admin", party.protect("admin"), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(process.cwd() + "/index.html")
+})
+party.app.listen(3000)
+```
+
+Note that we have two `GET` route handlers here:
+
+1. `GET /`: The normal route for normal users. Because we're using `party.protect("user")`, it will use the `user` group.
+2. `GET /admin`: The page where the admins can login. Because we're using `party.protect("admin")`, it will use the `admin` group.
+
+
+##### 4. Custom logged out handling
+
+By default the `protect()` modifier automatically sends the users to the built-in login page where the user can log in for that role.
+
+But if you want a custom handler, you can do something like this:
+
+
+```javascript
+const Privateparty = require('privateparty')
+const allowed = [
+  "0xab3b229eb4bcff881275e7ea2f0fd24eeac8c83a",
+  "0x1ad91ee08f21be3de0ba2ba6918e714da6b45836",
+  "0x829bd824b016326a401d083b33d092293333a830"
+]
+const party = new Privateparty()
+party.add("user", {
+  authorize: async (req, account) => {
+    if (!allowed.includes(account) {
+      throw new Error("not allowed")
+    }
+  }
+})
+party.app.get("/login", (req, res) => {
+  res.sendFile(__dirname + "/login.html")
+})
+party.app.get("/", party.protect("user", { redirect: "/login" } ), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(__dirname + "/index.html")
+})
+party.app.listen(3000)
+```
+
+Or if you DO NOT want to send the user to a new route but just display the error, you can use the `render` option:
+
+
+```javascript
+const Privateparty = require('privateparty')
+const allowed = [
+  "0xab3b229eb4bcff881275e7ea2f0fd24eeac8c83a",
+  "0x1ad91ee08f21be3de0ba2ba6918e714da6b45836",
+  "0x829bd824b016326a401d083b33d092293333a830"
+]
+const party = new Privateparty()
+party.add("user", {
+  authorize: async (req, account) => {
+    if (!allowed.includes(account) {
+      throw new Error("not allowed")
+    }
+  }
+})
+party.app.get("/", party.protect("user", { render: __dirname + "/login.html" } ), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(__dirname + "/index.html")
+})
+party.app.listen(3000)
+```
+
+##### 5. Token authentication
+
+In addition to using the authenticted user's credentials for authorizing, you can use access token based authorization.
+
+Here's an example:
+
+
+```javascript
+const party = new Privateparty()
+party.add("user", {
+  tokens: [
+    "01127c36-32fa-4c85-b6da-f720796fe679",
+    "35161a5c-60f0-4809-8b49-1a662247f5b3"
+  ]
+})
+// Our JSON API endpoint
+party.app.get("/api", party.protect("user"), (req, res) => {
+  res.json({
+    people: ["alice", "bob", "carol"]
+  })
+})
+party.app.get("/", party.protect("user"), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(process.cwd() + "/index.html")
+})
+```
+
+
+This will:
+
+1. Allow ALL authenticated user to log in in the browser using cookies (since there is no `authorize()` callback to restrict access
+2. Allow only those who have access to the access tokens `01127c36-32fa-4c85-b6da-f720796fe679` and `35161a5c-60f0-4809-8b49-1a662247f5b3` to make request to the app.
+
+To make an access token authenticated request, you need to set the HTTP request header's `Authorization` field as `token <ACCESS_TOKEN>`. Example:
+
+```javascript
+fetch("https://protectedendpoint.com/api", {
+  headers: {
+    "Authorization": "token 01127c36-32fa-4c85-b6da-f720796fe679"
+  }
+}).then((r) => {
+  return r.json()
+}).then((r) => {
+  console.log(r)
+})
+```
+
+
 
 ### contract()
 
@@ -1320,9 +1637,9 @@ const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 const web3 = createAlchemyWeb3(<YOUR JSON-RPC ENDPOINT URL>)
 const party = new Privateparty()
 party.add("admin", {
-  session: "/admin/session",
-  connect: "/admin/connect",
-  disconnect: "/admin/disconnect",
+  session: "/privateparty/admin/session",
+  connect: "/privateparty/admin/connect",
+  disconnect: "/privateparty/admin/disconnect",
   authorize: async (req, account) => {
     const mfers = "0x79fcdef22feed20eddacbb2587640e45491b757f"
     let owner = await party.contract(web3, party.abi.ownable, mfers).owner().call()
@@ -1489,9 +1806,9 @@ party.app.listen(3000)
 
 Above code will set up the default endpoints:
 
-- `GET /session`
-- `POST /connect`
-- `POST /disconnect`
+- `GET /privateparty/session`
+- `POST /privateparty/connect`
+- `POST /privateparty/disconnect`
 
 We can automatically connect to those endpoints simply by specifying the name of the role (`"user"`):
 
@@ -1517,9 +1834,9 @@ party.add("user")
 
 // "admin" role
 party.add("admin", {
-  session: "/admin/session",
-  connect: "/admin/connect",
-  disconnect: "/admin/disconnect",
+  session: "/privateparty/admin/session",
+  connect: "/privateparty/admin/connect",
+  disconnect: "/privateparty/admin/disconnect",
   authorize: (req, account) => {
     const ADMIN = "0x502b2FE7Cc3488fcfF2E16158615AF87b4Ab5C41"
     if (account === ADMIN) {
