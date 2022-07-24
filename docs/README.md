@@ -2265,9 +2265,11 @@ const pass = new Partypass({
 })
 ```
 
-### create
+### create()
 
 Create a session using the initialized Partypass object
+
+> `await pass.create(name, payload)` is equivalent to `await pass.request(await pass.build(name), payload)`
 
 #### syntax
 
@@ -2321,7 +2323,7 @@ console.log(session)
 and run `node client`. You will get a session object with a JWT included.
 
 
-### session
+### session()
 
 check if the session has expired or not
 
@@ -2340,3 +2342,52 @@ const session = await pass.session(name)
 - `session`: returns the session info for the `name` role. If expired, returns `null`.
 
 
+### build()
+
+build a signed request to send to a privateparty server.
+
+> a `create()` call is equivalent to calling `build()` and then calling `request()` 
+
+#### syntax
+
+```javascript
+const req = await pass.build(name)
+```
+
+#### parameters
+
+- `name`: the name of the role
+
+#### return value
+
+- `req`: the prepared request object. This can be sent to the associated privateparty server (must be the same host as the connected `host`)
+  - `str`: the nonce message that was signed
+  - `sig`: the signature (personal signature)
+  - `url`: the endpoint to send the request to
+
+
+### request()
+
+send a built request created with the `build()` method to get the corresponding session back from the privateparty server
+
+#### syntax
+
+```javascript
+const session = await pass.request(req, payload)
+```
+
+#### parameters
+
+- `req`: the prepared request object created with `pass.build()`. This can be sent to the associated privateparty server (must be the same host as the connected `host`)
+  - `str`: the nonce message that was signed
+  - `sig`: the signature (personal signature)
+  - `url`: the endpoint to send the request to
+- `payload`: **(optional)** an extra payload to send to the privateparty server.
+
+#### return value
+
+- `session`: returns the created session info for the `name` role.
+  - `account`: the authenticated account
+  - `expiresIn`: how long this session will be valid for since the issued time (`iat`), in seconds. (default: 60 * 60 * 24 * 30, or 30 days)
+  - `jwt`: the full JWT string
+  - `auth`: **(optional)** additional attributes set by the privateparty server if needed. Only included when you return something from the `authorize()` callback when calling `party.add()`.
