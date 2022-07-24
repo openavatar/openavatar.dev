@@ -936,15 +936,33 @@ You can implement a Privateparty web app with 2 libraries (server-side and clien
 
 ## 1. Client
 
+### Load from CDN
+
 Include in your frontend web app:
 
 ```html
 <script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
 ```
 
+### Import
+
+```
+npm install privatepartyjs
+```
+
 Then initialize with:
 
 ```javascript
+// CJS
+const Privateparty = require('privatepartyjs')
+const party = new Privateparty(config)
+```
+
+or
+
+```javascript
+// ESM
+import Privateparty from 'privatepartyjs'
 const party = new Privateparty(config)
 ```
 
@@ -1336,7 +1354,9 @@ party.app.post(route2, party.protect(name), (req, res) => {
   - `render`: The HTML file path to render when logged out.
   - `json`: The JSON object to return when logged out, and the request was made as an API request (not a website)
   - `walletconnect`: The Walletconnect Infura ID, to support mobile wallets.
-  - `fresh`: `true` to display all accounts from the wallet and let the user select, or `false` to use the default account (The default is `false` if not specified. `false` takes two fewer clicks from the user than the `true` option)
+  - `fresh`: when using the default login page, whether the login should ask the user to (re-)connect a wallet from the wallet list, or to use the previously connected wallet if still connected
+    - if `true`, the login attempt always displays all the wallets from the list and lets the user select one
+    - if `false`, tries to immediately use a previously selected wallet to skip the wallet selection step (This is the default)
 
 The difference between the `redirect` and the `render` option is that, the `redirect` sends the user to a different designated route (for example a `/login` route), whereas `render` DOES NOT take the user to any other URL but just displays the supplied HTML.
 
@@ -1803,9 +1823,9 @@ let session = await party.connect(name, payload, options)
 - `name`: the name of a privateparty role. Automatically connects to the endpoints defined on the privateparty backend with the same name.
 - `payload`: **(optional)** additional payload that will be passed to the Privateparty server. The Privateparty server will be able to inspect `req.body.payload` in its authorization logic.
 - `options`: **(optional)** an object describes how the connection shall be made. includes the following attributes:
-  - `fresh`: whether the login should ask the user to select an account from the wallet, or to use the default account. The default value is `false`
-    - if `true`, the login attempt always displays all the account from the wallet and lets the user select an account from the list.
-    - if `false`, just uses the default account. Takes 2 fewer steps than `true` (This is the default)
+  - `fresh`: whether the login should ask the user to (re-)connect a wallet from the wallet list, or to use the previously connected wallet if still connected
+    - if `true`, the login attempt always displays all the wallets from the list and lets the user select one
+    - if `false`, tries to immediately use a previously selected wallet to skip the wallet selection step (This is the default)
 
 ##### return value
 
