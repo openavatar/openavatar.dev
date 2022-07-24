@@ -220,6 +220,12 @@ This will give you a public HTTPS url you can test with. Copy and paste it into 
 ![mobilelogin.gif](mobilelogin.gif)
 
 
+## 5. Drop-in react component
+
+Using react? Try the react component: [Partybutton](https://partybutton.papercorp.org/)
+
+[!partybutton.png](partybutton.png)
+
 ---
 
 # Examples
