@@ -220,12 +220,6 @@ This will give you a public HTTPS url you can test with. Copy and paste it into 
 ![mobilelogin.gif](mobilelogin.gif)
 
 
-## 5. Drop-in react component
-
-Using react? Try the react component: [Partybutton](https://partybutton.papercorp.org/)
-
-[!partybutton.png](partybutton.png)
-
 ---
 
 # Examples
@@ -920,9 +914,16 @@ npx http-server
 
 Now open the browser at http://localhost:8080 and it should work as intended.
 
+
 ## 7. More examples
 
 Check out the [demo folder](https://github.com/privatepart/privateparty/tree/main/demo) on GitHub for more examples.
+
+## 8. React component
+
+Using react? Try the react component: [Partybutton](https://partybutton.papercorp.org/)
+
+![partybutton.png](partybutton.png)
 
 ---
 
