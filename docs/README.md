@@ -966,6 +966,8 @@ import Privateparty from 'privatepartyjs'
 const party = new Privateparty(config)
 ```
 
+> If the code works fine but you're having trouble when you're trying to package for production with webpack, it's probably because webpack 5 has started excluding node.js core modules (for any library that uses node.js core modules). See this article to learn how to resolve this issue: https://www.alchemy.com/blog/how-to-polyfill-node-core-modules-in-webpack-5
+
 ## 2. Server
 
 To install:
