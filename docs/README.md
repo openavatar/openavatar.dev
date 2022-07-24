@@ -48,7 +48,7 @@ Ask questions or share feedback here:
 There are two things to do:
 
 1. **Set up a backend:** The `privateparty` module lets you easily set up an [express.js](https://expressjs.com/) server protected by blockchain wallet signatures.
-2. **Connect to the backend:** Once the backend is set up, you can connect to it from the browser using the `privatepartyjs` library.
+2. **Connect to the backend:** Once the backend is set up, you can connect to it from the browser using the `partyconnect` library.
 
 ## 1. Server
 
@@ -87,7 +87,7 @@ Now let's create a file named `index.html` that talks to the server:
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 </style>
@@ -162,7 +162,7 @@ Then let's go back to the frontend example above and just pass the `walletconnec
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 </style>
@@ -224,7 +224,7 @@ This will give you a public HTTPS url you can test with. Copy and paste it into 
 
 # Examples
 
-## 1. Invite only apps
+## Invite only apps
 
 Only allow certain addresses to login.
 
@@ -277,7 +277,7 @@ Now let's create a file named `index.html` that talks to the server:
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 </style>
@@ -316,7 +316,7 @@ render()
 ```
 
 
-## 2. ERC20 gated apps
+## ERC20 gated apps
 
 Sometimes you may want users to login with their wallet and store their last snapshot of their balance for a specific ERC20 token.
 
@@ -330,7 +330,7 @@ let's first build the frontend. It's the same as last example. Create a file nam
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 </style>
@@ -463,7 +463,7 @@ party.app.listen(3000)
 ```
 
 
-## 3. NFT gated apps
+## NFT gated apps
 
 Using the same principle, we can implement logins authorized by NFT ownership. For example, often you may want to only allow people to login when they own at least 1 (or more) NFTs from a collection.
 
@@ -505,7 +505,7 @@ party.app.listen(3000)
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 </style>
@@ -517,7 +517,7 @@ party.app.listen(3000)
 </html>
 ```
 
-## 4. Login with NFT
+## Login with NFT
 
 ![loginwithnft.gif](loginwithnft.gif)
 
@@ -538,7 +538,7 @@ let's first create a file named `index.html` that talks to the server:
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 img { width: 50px; height: 50px; flex-shrink: 0; margin-right: 10px; border-radius: 50px; }
@@ -665,7 +665,7 @@ You will see a login screen where you can enter an NFT collection address and a 
 You can only login if you actually own the NFT.
 
 
-## 5. Multiple roles
+## Multiple roles
 
 Sometimes you may want to support multiple roles for a single account.
 
@@ -722,7 +722,7 @@ The user interface is accessible at http://localhost:3000 (route "/") and any ac
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 </style>
@@ -770,7 +770,7 @@ The admin interface is accessible at http://localhost:3000/admin (route "/admin"
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 </style>
@@ -810,7 +810,7 @@ render()
 </html>
 ```
 
-## 6. Cross origin login
+## Cross origin login
 
 Sometimes your frontend code may be hosted on a different domain than the backend.
 
@@ -848,7 +848,7 @@ Save the following code as `index.html`:
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/privatepartyjs@0.0.29/dist/privateparty.js"></script>
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 <style>
 .hidden { display: none; }
 </style>
@@ -896,7 +896,7 @@ const party = new Privateparty({
 })
 ```
 
-By default, the privateparty.js client makes requests to the same domain. But you can customize the endpoint by setting the `host` attribute when initializing a Privateparty client.
+By default, the partyconnect.js client makes requests to the same domain. But you can customize the endpoint by setting the `host` attribute when initializing a Privateparty client.
 
 ### Run
 
@@ -914,12 +914,113 @@ npx http-server
 
 Now open the browser at http://localhost:8080 and it should work as intended.
 
+## Cross platform login
 
-## 7. More examples
+Privateparty is powered by [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token).
+
+This means you can use the same generated token **both inside and outside the browser**. "outside the browser" can be anywhere, including:
+
+- mobile app
+- server
+- serverless function (AWS lambda, vercel, netlify, etc.)
+- IoT device
+- and so on..
+
+Let's check out how to authenticate and authorize using a node.js app.
+
+### Server
+
+For the sake of simplicity, we will just create a privateparty server that lets anyone log in (therefore there is no `authorize()` function:
+
+```javascript
+///////////////////////////////////////////////////////////////////////////////////////////
+//
+//  When a user logs in, take a snapshot of an ERC20 token balance and store it in cookie
+//
+///////////////////////////////////////////////////////////////////////////////////////////
+const Privateparty = require('privateparty')
+const party = new Privateparty()
+party.add("user")
+party.app.get("/api", party.protect("user", { json: { error: "not logged in" } }), (req, res) => {
+  res.json({ status: "Logged in!" })
+})
+party.app.listen(3000)
+```
+
+If you want to t
+
+
+### Client
+
+For this we will use a node.js client named `partypass`, and `cross-fetch` (to make fetch requests).
+
+```
+npm install partypass
+```
+
+Now create a file named `client.js`:
+
+```javascript
+const Partypass = require('partypass')
+const fetch = require('cross-fetch')
+const run = async () => {
+  const pass = new Partypass({
+    host: "http://localhost:3000",
+    key: "cd76c32ffeae94b725b40b1f58ffc793d5b0e96596f8d067f29d385894f16424" // replace with your private key
+  });
+  const session = await pass.create("user"); // The session object will contain { jwt, account, ... }
+
+  // Now let's make a request with the jwt
+  let response = await fetch("http://localhost:3000/api", {
+    headers: {
+      authorization: `token ${session.jwt}`
+    }
+  }).then((r) => {
+    return r.json()
+  })
+  console.log(response)
+}
+run()   // run it!
+```
+
+Run it with `node client`.
+
+1. The `client.js` will make a request to the privateparty server at port 3000 to get a session
+2. Then it will use the `session.jwt` in the authorization header to make an authenticated request to the `/api` endpoint, which will succeed.
+
+It will print:
+
+```
+{ status: 'Logged in!' }
+```
+
+Now, just to make sure that it fails when there's no token, let's try making the same request, but without the authorization header:
+
+```javascript
+const Partypass = require('partypass')
+const fetch = require('cross-fetch')
+const run = async () => {
+  let response = await fetch("http://localhost:3000/api").then((r) => {
+    return r.json()
+  })
+  console.log(response)
+}
+run()   // run it!
+```
+
+It will print:
+
+```
+{ error: 'not logged in' }
+```
+
+
+
+## More examples
 
 Check out the [demo folder](https://github.com/privatepart/privateparty/tree/main/demo) on GitHub for more examples.
 
-## 8. React component
+## React component
 
 Using react? Try the react component: [Partybutton](https://partybutton.papercorp.org/)
 
@@ -932,43 +1033,10 @@ Using react? Try the react component: [Partybutton](https://partybutton.papercor
 You can implement a Privateparty web app with 2 libraries (server-side and client-side) that talk to each other:
 
 1. `privateparty`: The server-side module
-2. `privatepartyjs`: The client-side library
+2. `partyconnect`: The browser client for privateparty => automatically uses the browser wallets and sets the cookies after logging in.
+3. `partypass`: The node.js client for privateparty => stateless client for making a request to a privateparty server and getting back a new session in a JWT.
 
-## 1. Client
-
-### Load from CDN
-
-Include in your frontend web app:
-
-```html
-<script src="https://unpkg.com/privatepartyjs/dist/privateparty.js"></script>
-```
-
-### Import
-
-```
-npm install privatepartyjs
-```
-
-Then initialize with:
-
-```javascript
-// CJS
-const Privateparty = require('privatepartyjs')
-const party = new Privateparty(config)
-```
-
-or
-
-```javascript
-// ESM
-import Privateparty from 'privatepartyjs'
-const party = new Privateparty(config)
-```
-
-> If the code works fine but you're having trouble when you're trying to package for production with webpack, it's probably because webpack 5 has started excluding node.js core modules (for any library that uses node.js core modules). See this article to learn how to resolve this issue: https://www.alchemy.com/blog/how-to-polyfill-node-core-modules-in-webpack-5
-
-## 2. Server
+## Server
 
 To install:
 
@@ -981,6 +1049,76 @@ Then, use the module in your app like this:
 ```javascript
 const Privateparty = require('privateparty')
 const party = new Privateparty()
+```
+
+## Browser client
+
+### Load from CDN
+
+Include in your frontend web app:
+
+```html
+<script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
+```
+
+### Import
+
+```
+npm install partyconnect
+```
+
+Then initialize with:
+
+```javascript
+// CJS
+const Privateparty = require('partyconnect')
+const party = new Privateparty(config)
+```
+
+or
+
+```javascript
+// ESM
+import Privateparty from 'partyconnect'
+const party = new Privateparty(config)
+```
+
+> If the code works fine but you're having trouble when you're trying to package for production with webpack, it's probably because webpack 5 has started excluding node.js core modules (for any library that uses node.js core modules). See this article to learn how to resolve this issue: https://www.alchemy.com/blog/how-to-polyfill-node-core-modules-in-webpack-5
+
+## Node.js client
+
+### Import
+
+```
+npm install partypass
+```
+
+Then initialize with:
+
+```javascript
+// CJS
+const Partypass = require('partypass')
+const pass = new Partypass(config)
+```
+
+or
+
+```javascript
+// ESM
+import Partypass from 'partypass'
+const pass = new Partypass(config)
+```
+
+### Load from CDN
+
+Although partypass is a node.js client, you can use it in the web in certain cases.
+
+For example, a server may use `pass.build()` to create a pass creation request, and send it to the user's browser, where the user makes the request using `pass.request()`. In this case you can also use the CDN JS:
+
+Include in your frontend web app:
+
+```html
+<script src="https://unpkg.com/partypass/dist/partypass.js"></script>
 ```
 
 ---
@@ -999,7 +1137,7 @@ For the backend, you need to use the package `privateparty`. Simply instantiate 
 const party = new Privateparty(config)
 ```
 
-##### parameters
+#### parameters
 
 - `config`: privateparty server configuration
   - `secret`: **(optional)** a string used for signing cookies
@@ -1010,7 +1148,7 @@ const party = new Privateparty(config)
   - `app`: **(optional)** Inject an existing instantiated express.js app instance
   - `express`: **(optional)** Inject an existin express module
 
-##### return value
+#### return value
 
 - `party`: The initialized privateparty instance, which contains the following attributes:
   - `app`: an "app" instance created internally by calling `const app = express()`
@@ -1113,7 +1251,7 @@ Add a group to the party
 await party.add(name, config)
 ```
 
-##### parameters
+#### parameters
 
 - `name`: group name (must be unique per group)
 - `config`: configuration options for each group
@@ -1128,11 +1266,11 @@ await party.add(name, config)
   - `contracts`: (optional) a declarative object for defining one or more contracts, which will be initialized and injected in to the `authoirze()` handler
 
 
-##### return value
+#### return value
 
 none
 
-##### example
+#### example
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -1204,7 +1342,7 @@ party.app.post(route2, party.auth(name), (req, res) => {
 })
 ```
 
-##### parameters
+#### parameters
 
 - `name`: The authorization group name to use for the route handler
 
@@ -1348,7 +1486,7 @@ party.app.post(route2, party.protect(name), (req, res) => {
 
 
 
-##### parameters
+#### parameters
 
 - `name`: The authorization group name to use for the route
 - `options`: additional information about the protection
@@ -1605,7 +1743,7 @@ Creates and returns a web3 contract methods object, which can be chained to call
 const methods = party.contract(web3, abi, contract_address)
 ```
 
-##### parameters
+#### parameters
 
 - `web3`: an initialized web3 object
 - `abi`: an ABI array
@@ -1757,7 +1895,7 @@ The expressjs module.
 
 
 
-## Client
+## Browser client
 
 ### constructor
 
@@ -1767,13 +1905,13 @@ The expressjs module.
 const party = new Privateparty(config)
 ```
 
-##### parameters
+#### parameters
 
 - `config`: configuration
   - `host`: **(optional)** specify the host in case you wish to make a cross-origin request to a privateparty server hosted on another domoain.
   - `walletconnect`: **(optional)** Specify this field to support mobile and desktop wallets. The `walletconnect` attribute is the [Walletconnect infuraId attribute](https://github.com/Web3Modal/web3modal/blob/master/docs/providers/walletconnect.md?plain=1#L22) (Go to [Infura](https://infura.io/) to sign up and get the Infura project ID).
 
-##### return value
+#### return value
 
 - `party`: An instantiated privateparty client
 
@@ -1820,7 +1958,7 @@ const party = new Privateparty({
 let session = await party.connect(name, payload, options)
 ```
 
-##### parameters
+#### parameters
 
 - `name`: the name of a privateparty role. Automatically connects to the endpoints defined on the privateparty backend with the same name.
 - `payload`: **(optional)** additional payload that will be passed to the Privateparty server. The Privateparty server will be able to inspect `req.body.payload` in its authorization logic.
@@ -1829,7 +1967,7 @@ let session = await party.connect(name, payload, options)
     - if `true`, the login attempt always displays all the wallets from the list and lets the user select one
     - if `false`, tries to immediately use a previously selected wallet to skip the wallet selection step (This is the default)
 
-##### return value
+#### return value
 
 - `session`: The authenticated and authorized session object for this connection.
   - `account`: the authenticated account
@@ -2015,11 +2153,11 @@ The `session()` method is used to get the current session.
 let session = await party.session(name)
 ```
 
-##### parameters
+#### parameters
 
 - `name`: The name of the role for the session
 
-##### return value
+#### return value
 
 - `session`: the global session object for the specified name
   - `account`: the authenticated account
@@ -2069,13 +2207,136 @@ Clears the cookies and logs out of all sessions
 await party.disconnect(name)
 ```
 
-##### parameters
+#### parameters
 
 - `name`: The name of the session to disconnect from
 
-##### return value
+#### return value
 
 - none
 
 
 ---
+
+## Node.js client
+
+Privateparty utilizes [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token), which means you can take the same session created from the browser, and use it in a server setting, or any other non-browser setting.
+
+Here's how the node.js client differ from the browser client:
+
+1. No cookie: Unlike the partyconnect browser client, which takes care of setting cookies automatically after the connection, the `partypass` node.js client simply makes a request to the privateparty server to create a JWT token. From that point on, it's up to you what to do with the JWT token.
+2. Use private key directly: The `partyconnect` browser client was built for a seamless in-browser usage, therefore uses whatever wallet is injected into the browser. But the `partypass` node.js client is primarily supposed to run in node.js setting, and there is no injected browser wallet. Therefore, to initialize `partypass` you must pass a private key, which will be used to sign messages.
+
+Basically, the `partyconnect` library is primarily for in-browser usage, whereas `partypass` is a super minimal library for creating JWTs, using a private key you provided.
+
+### constructor
+
+#### syntax
+
+```javascript
+const pass = new Partypass(config)
+```
+
+#### parameters
+
+- `config`
+  - `host`: The privateparty host URL
+  - `key`: The private key in hex form (without a `0x` prefix)
+
+#### return value
+
+- `pass`: an initialized partypass object, which can be used to create sessions
+
+#### example
+
+```javascript
+const pass = new Partypass({
+  host: "http://localhost:3000",
+  key: "cd76c32ffeae94b725b40b1f58ffc793d5b0e96596f8d067f29d385894f16424" // private key
+})
+```
+
+In most cases you do NOT want to hardcode private keys, so the code may actually look something like:
+
+```javascript
+const pass = new Partypass({
+  host: "http://localhost:3000",
+  key: process.env.PRIVATE_KEY  // use environment variables
+})
+```
+
+### create
+
+Create a session using the initialized Partypass object
+
+#### syntax
+
+```javascript
+const session = await pass.create(name, payload)
+```
+
+#### parameters
+
+- `name`: the name of a privateparty role. Automatically connects to the endpoints defined on the privateparty backend with the same name.
+- `payload`: **(optional)** additional payload that will be passed to the Privateparty server. The Privateparty server will be able to inspect `req.body.payload` in its authorization logic.
+
+#### return value
+
+- `session`: The authenticated and authorized session object for this connection.
+  - `account`: the authenticated account
+  - `expiresIn`: how long this session will be valid for since the issued time (`iat`), in seconds. (default: 60 * 60 * 24 * 30, or 30 days)
+  - `jwt`: the full JWT string
+  - `auth`: **(optional)** additional attributes set by the privateparty server if needed. Only included when you return something from the `authorize()` callback when calling `party.add()`.
+
+The same `session` object will be stored inside the cookie and will be accessible subsequently via `party.session()`
+
+#### examples
+
+Let's assume the Privateparty backend has added a role named "user":
+
+```javascript
+// server.js
+const party = new Privateparty()
+party.add("user")
+party.app.get("/", party.auth("user"), (req, res) => {
+  // public route.
+  // no authentication and no authorization
+})
+party.app.listen(3000)
+```
+
+Now create a client that will make a request to above privateparty server, as `client.js`:
+
+```javascript
+// client.js
+const Partypass = require('partypass')
+const pass = new Partypass({
+  host: "http://localhost:3000",
+  key: "cd76c32ffeae94b725b40b1f58ffc793d5b0e96596f8d067f29d385894f16424" // replace with your private key
+})
+let session = await pass.create("user")
+console.log(session)
+```
+
+and run `node client`. You will get a session object with a JWT included.
+
+
+### session
+
+check if the session has expired or not
+
+#### syntax
+
+```javascript
+const session = await pass.session(name)
+```
+
+#### parameters
+
+- `name`: the name of the role
+
+#### return value
+
+- `session`: returns the session info for the `name` role. If expired, returns `null`.
+
+
