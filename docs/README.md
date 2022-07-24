@@ -1305,7 +1305,7 @@ To add the protection logic to any route, you need to:
 
 
 ```javascript
-party.protect(name, handler)
+party.protect(name, options)
 ```
 
 Example usage:
@@ -1323,11 +1323,13 @@ party.app.post(route2, party.protect(name), (req, res) => {
 
 ##### parameters
 
-- `name`: The authorization group name to use for the route handler
-- `handler`: The handler object, which describes what to do when the authorization has failed
-  - `redirect`: The web route to redirect to. For example you can set up an additional route that displays a web page when logged out.
+- `name`: The authorization group name to use for the route
+- `options`: additional information about the protection
+  - `redirect`: The web route to redirect to when logged out. For example you can set up an additional route that displays a web page when logged out.
   - `render`: The HTML file path to render when logged out.
-  - `json`: The JSON to return when the request was made as an API request (not a website)
+  - `json`: The JSON object to return when logged out, and the request was made as an API request (not a website)
+  - `walletconnect`: The Walletconnect Infura ID, to support mobile wallets.
+  - `fresh`: `true` to display all accounts from the wallet and let the user select, or `false` to use the default account (The default is `false` if not specified. `false` takes two fewer clicks from the user than the `true` option)
 
 The difference between the `redirect` and the `render` option is that, the `redirect` sends the user to a different designated route (for example a `/login` route), whereas `render` DOES NOT take the user to any other URL but just displays the supplied HTML.
 
@@ -1548,6 +1550,20 @@ fetch("https://protectedendpoint.com/api", {
 })
 ```
 
+##### 6. Mobile wallet support
+
+The following example simply authenticates a user's account based on the wallet signature.
+
+```javascript
+const party = new Privateparty()
+party.add("user")
+
+// Use the walletconnect Inufra ID to support mobile wallets on the default login page
+party.app.get("/", party.protect("user", { walletconnect: "667750972a89441ea5d276ed16d7eef0" }), (req, res) => {
+  console.log("session", req.session)
+  res.sendFile(process.cwd() + "/index.html")
+})
+```
 
 
 ### contract()
@@ -1772,19 +1788,25 @@ const party = new Privateparty({
 #### syntax
 
 ```javascript
-let session = await party.connect(name, payload)
+let session = await party.connect(name, payload, options)
 ```
 
 ##### parameters
 
 - `name`: the name of a privateparty role. Automatically connects to the endpoints defined on the privateparty backend with the same name.
 - `payload`: **(optional)** additional payload that will be passed to the Privateparty server. The Privateparty server will be able to inspect `req.body.payload` in its authorization logic.
+- `options`: **(optional)** an object describes how the connection shall be made. includes the following attributes:
+  - `fresh`: whether the login should ask the user to select an account from the wallet, or to use the default account. The default value is `false`
+    - if `true`, the login attempt always displays all the account from the wallet and lets the user select an account from the list.
+    - if `false`, just uses the default account. Takes 2 fewer steps than `true` (This is the default)
 
 ##### return value
 
 - `session`: The authenticated and authorized session object for this connection.
   - `account`: the authenticated account
-  - `auth`: additional attributes set by the privateparty server if needed.
+  - `expiresIn`: how long this session will be valid for since the issued time (`iat`), in seconds. (default: 60 * 60 * 24 * 30, or 30 days)
+  - `jwt`: the full JWT string
+  - `auth`: **(optional)** additional attributes set by the privateparty server if needed. Only included when you return something from the `authorize()` callback when calling `party.add()`.
 
 The same `session` object will be stored inside the cookie and will be accessible subsequently via `party.session()`
 
@@ -1923,6 +1945,34 @@ const { app, express, auth } = new Privateparty({
 
 Note that the additional payload is included under the attribute `req.body.auth`.
 
+##### 4. let users select an account from the wallet
+
+By default, Privateparty automatically uses the default account. But sometimes you may want to let the user select another account from the wallet.
+
+To connect this way, you can:
+
+```javascript
+const party = new Privateparty()
+await party.connect("user", null, { fresh: true })
+```
+
+Note:
+
+- The second argument is `null` (we are not passing any payload)
+- The third argument (`options`) of the `connect()` method is `{fresh: true}`. This tells privateparty to make a fresh connection, which lets the user select from all the accounts in the wallet instead of the default one.
+
+Of course, you can do this while passing a payload too:
+
+```javascript
+const party = new Privateparty()
+await party.connect(
+  "user",
+  { contract: "0x6866ed9a183f491024692971a8f78b048fb6b89b", tokenId: "55005454344647406361450320675654878134478584534017520891306338141495783002503" },
+  { fresh: true }
+)
+```
+
+Now the second argument is the `payload`, and the third argument is the `options`
 
 ---
 
@@ -1943,6 +1993,10 @@ let session = await party.session(name)
 ##### return value
 
 - `session`: the global session object for the specified name
+  - `account`: the authenticated account
+  - `expiresIn`: how long this session will be valid for since the issued time (`iat`), in seconds. (default: 60 * 60 * 24 * 30, or 30 days)
+  - `iat`: when this session was issued
+  - `auth`: **(optional)** additional attributes set by the privateparty server if needed. Only included when you return something from the `authorize()` callback when calling `party.add()`.
 
 
 #### examples
