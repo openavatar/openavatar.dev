@@ -219,6 +219,21 @@ This will give you a public HTTPS url you can test with. Copy and paste it into 
 
 ![mobilelogin.gif](mobilelogin.gif)
 
+## 5. Even simpler authentication
+
+Above examples demonstrated how you can programmatically login or logout using JavaScript.
+
+But there's an even simpler way to handle logins: Instead of all the JavaScript, you simply include a link that looks something like this:
+
+```
+<a href="/privateparty/gate/user">Login</a>
+```
+
+which sends users to the built-in **"gate"** page, which automatically handles logins and logouts and sends the user back after taking care of the login/logout.
+
+To learn how to do this, check out "[One-liner login/logout](#one-liner-loginlogout)" section.
+
+![gate.gif](gate.gif)
 
 ---
 
@@ -1014,6 +1029,92 @@ It will print:
 { error: 'not logged in' }
 ```
 
+## One-liner login/logout
+
+We've looked at ways to authenticate using JavaScript. But there's an even simpler way to get started. All you need to do is send users to a "gate" page.
+
+### Server
+
+Let's first set up a simple Privateparty server by writing a file named `app.js`.
+
+```javascript
+const party = new Privateparty()
+party.add("user")
+party.app.get("/", (req, res) => {
+  res.sendFile(process.cwd() + "/index.html")
+})
+party.app.listen(3000)
+```
+
+When a user goes to the `/` route, it will display the `index.html` page regardless of whether logged in or not. Let's take a look at the `index.html` file:
+
+### Client
+
+The following code does not use any Javascript code to authenticate. Instead, just by adding one line `<a id='account' href='/privateparty/gate/user?callback=/'></a>`, the user can click to open a "gate" page to login or logout, and come back (kind of like opening a facebook login page for "facebook connect" and redirecting back after logging in):
+
+```html
+<html>
+<head>
+<script src="https://unpkg.com/partyconnect@0.0.42/dist/partyconnect.js"></script>
+</head>
+<body>
+<nav>
+  <a id='account' href="/privateparty/gate/user?callback=/"></a>
+  <pre class='session'></pre>
+</nav>
+<script>
+const party = new Privateparty()
+const render = async () => {
+  let session = await party.session("user")
+
+  // if logged in, display the account. Otherwise display "login"
+  document.querySelector("a").innerHTML = (session ? session.account : "login")
+
+  // print the current session
+  document.querySelector(".session").innerHTML = JSON.stringify(session, null, 2)
+}
+render()
+</script>
+</body>
+</html>
+```
+
+Run the server with `node app.js` and go to http://localhost:3000 - you will see:
+
+![gate.gif](gate.gif)
+
+> Pay attention to how the browser URL changes.
+> 
+> - When the user clicks "login" it goes to /privateparty/gate/user?callback=/
+> - Then after logging in, it automatically redirects back to "/" because of the callback
+> - Same process for the logout. After logging out, it automatically redirects back to "/"
+
+Let's go through the HTML to see what's going on.
+
+1. First of all, the `render()` method checks the `user` session and displays the account if logged in, otherwise "login". This part we are familiar with.
+2. Next, notice the `<a>` tag. It has an `href` attribute of `/privateparty/gate/user?callback=/`. Let's break this down.
+    - The `/privateparty/gate/user` is the default route for the built-in "gate" page, which lets the user login (if logged out) or log out (if logged in).
+      - This route is automatically generated from the role name. For example, to send a user to an `admin` role login page, the link would be `/privateparty/gate/admin`.
+    - The `?callback=/` part tells the gate page which URL to redirect the user to after logging in (or logging out).
+      - In this case, we want the login page to automatically send the user back to the `/` route, so the `callback` is `/`.
+
+### Mobile support
+
+To automatically support mobile wallets for the built-in gate page, you need to initialize the Privateparty with a custom `gate` config with the `walletconnect` attribute (the Infura ID):
+
+
+```javascript
+const party = new Privateparty({
+  gate: {
+    walletconnect: "667750972a89441ea5d276ed16d7eef0"
+  }
+})
+party.add("user")
+party.app.get("/", (req, res) => {
+  res.sendFile(process.cwd() + "/index.html")
+})
+party.app.listen(3000)
+```
 
 
 ## More examples
@@ -1147,6 +1248,11 @@ const party = new Privateparty(config)
     - See https://github.com/expressjs/cors#configuration-options
   - `app`: **(optional)** Inject an existing instantiated express.js app instance
   - `express`: **(optional)** Inject an existin express module
+  - `gate`: **(optional)** The built-in gate page config
+    - `walletconnect`: The Walletconnect Infura ID, to support mobile wallets.
+    - `fresh`: when using the default login page, whether the login should ask the user to (re-)connect a wallet from the wallet list, or to use the previously connected wallet if still connected
+      - if `true`, the login attempt always displays all the wallets from the list and lets the user select one
+      - if `false`, tries to immediately use a previously selected wallet to skip the wallet selection step (This is the default)
 
 #### return value
 
@@ -1258,6 +1364,7 @@ await party.add(name, config)
   - `session`: (optional) The GET path to query the current session for this engine. (default: `/privateparty/session/${name}`)
   - `connect`: (optional) The POST path to create a session for this engine (default: `/privateparty/connect/${name}`)
   - `disconnect`: (optional) The POST path to destroy a session for this engine (default: `/privateparty/disconnect/${name}`)
+  - `gate`: (optional) The gate page route for this engine (The "login/logout" page) (default: `privateparty/gate/${name}`)
   - `authorize`: a function that takes two or more arguments `req` (The incoming request object passed from express), `account` (The authenticated wallet address), and optionally `contracts` (only when you specify another attribute `contract`, explained below). 
     - To disallow a session based on the request, simply throw an error in the function.
     - To authorize the session, don't throw a function. Additionally, the return value of this function will be automatically set as the `auth` attribute of the session
@@ -1280,6 +1387,7 @@ party.add("user", {
   session: "/privateparty/session/user",            // custom path for the session route
   connect: "/privateparty/connect/user",            // custom path for the connect route 
   disconnect: "/privateparty/disconnect/user",      // custom path for the disconnect route
+  gate: "/privateparty/gate/user",                  // custom path for the gate page route
 
   // Define as many contracts as you want, using <name>: <description object>
   contracts: {
