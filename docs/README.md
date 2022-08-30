@@ -503,7 +503,7 @@ party.add("mfer", {
     }
   },
   authorize: async (req, account, contracts) => {
-    let balance = await contracts.sartoshi.balanceOf(account).call()
+    let balance = await contracts.sartoshi.methods.balanceOf(account).call()
     if (balance > 0) return { balance: balance }
     else throw new Error("must own at least one 'end of sartoshi'")
   }
