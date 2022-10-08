@@ -835,22 +835,23 @@ render()
 </html>
 ```
 
-## Cross origin login
 
-Sometimes your frontend code may be hosted on a different domain than the backend.
+## 跨域登录
 
-In this case you can use the built-in CORS support to allow ONLY the domain you specify to authenticate using your privateparty server.
+有时你的前端代码与后端可能运行在不同的域上。
 
-Let's set up:
+在此种情况下，可以应用内置的CORS功能，仅允许指定域使用服务端进行身份验证。
 
-1. A privateparty server at port 3007
-2. A frontend website running at port 8080
+需要如下设置：
 
-The frontend website at 8080 will try to authenticate against the privateparty server at http://localhost:3007
+1. OpenAvatar-SDK 服务端运行在 3007 端口
+2. 前端运行在 8080 端口
 
-### Server
+前端网站（ 8080 ）将使用 OpenAvatar-SDK 服务器 http://localhost:3007 进行身份验证
 
-Save the following code as `index.js`:
+### 服务端（Server)
+
+将下面代码另存为 `index.js`：
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -864,10 +865,9 @@ party.add("user")
 party.app.listen(3000)
 ```
 
-### Client
+### 客户端（Client）
 
-Save the following code as `index.html`:
-
+将下面代码另存为 `index.html`：
 
 ```html
 <html>
@@ -913,7 +913,7 @@ render()
 </html>
 ```
 
-The only differnt part here is the initialization step:
+唯一不同的部分是初始化步骤：
 
 ```javascript
 const party = new Privateparty({
@@ -921,17 +921,17 @@ const party = new Privateparty({
 })
 ```
 
-By default, the partyconnect.js client makes requests to the same domain. But you can customize the endpoint by setting the `host` attribute when initializing a Privateparty client.
+默认情况下， 使用客户端（partyconnect.js）向同一个域发出请求。 但是您可以在初始化 Privateparty 客户端时通过设置 `host` 属性来自定义端点。
 
-### Run
+### 运行
 
-First start the privateparty server:
+首先启动OpenAvatar-SDK 服务端：
 
 ```
 node index
 ```
 
-Now let's launch the `index.html` at port 8080 using:
+然后使用下面命令在 8080 端口启动 `index.html` 服务：
 
 ```
 npx http-server
@@ -939,24 +939,24 @@ npx http-server
 
 Now open the browser at http://localhost:8080 and it should work as intended.
 
-## Cross platform login
 
-Privateparty is powered by [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token).
+## 跨平台登录
 
-This means you can use the same generated token **both inside and outside the browser**. "outside the browser" can be anywhere, including:
+OpenAvatar 由 [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token) 提供实现支持。
 
-- mobile app
-- server
-- serverless function (AWS lambda, vercel, netlify, etc.)
-- IoT device
-- and so on..
+这意味着可以在**浏览器之内和外部**使用相同的生成令牌， “浏览器之外”可以是任何地方，包括：
 
-Let's check out how to authenticate and authorize using a node.js app.
+- 移动应用
+- 服务器
+- 无服务器功能（AWS lambda、vercel、netlify 等）
+- 物联网设备
+- 等等..
 
-### Server
+让我们看看如何使用 node.js 应用程序进行身份验证和授权。
 
-For the sake of simplicity, we will just create a privateparty server that lets anyone log in (therefore there is no `authorize()` function:
+### 服务端（Server）
 
+为了简单起见，我们创建一个允许任何人登录的OpenAvatar-SDK服务器（因此没有 `authorize()` 函数）：
 ```javascript
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -972,18 +972,16 @@ party.app.get("/api", party.protect("user", { json: { error: "not logged in" } }
 party.app.listen(3000)
 ```
 
-If you want to t
 
+### 客户端 （Client）
 
-### Client
-
-For this we will use a node.js client named `partypass`, and `cross-fetch` (to make fetch requests).
+为此，我们使用一个名为 `partypass` 的 node.js 客户端,  和 `cross-fetch`（发出 fetch 请求）。
 
 ```
 npm install partypass
 ```
 
-Now create a file named `client.js`:
+然后创建一个名为 `client.js` 的文件：
 
 ```javascript
 const Partypass = require('partypass')
@@ -1008,18 +1006,18 @@ const run = async () => {
 run()   // run it!
 ```
 
-Run it with `node client`.
+运行命令： `node client` 
 
-1. The `client.js` will make a request to the privateparty server at port 3000 to get a session
-2. Then it will use the `session.jwt` in the authorization header to make an authenticated request to the `/api` endpoint, which will succeed.
+1. `client.js` 向 OpenAvatar 服务器的3000端口 发出请求以获取 Session 会话
+2. 然后它将使用授权头中的`session.jwt`向`/api`端点发出经过身份验证的请求，并成功。
 
-It will print:
+将打印下面信息：
 
 ```
 { status: 'Logged in!' }
 ```
 
-Now, just to make sure that it fails when there's no token, let's try making the same request, but without the authorization header:
+接下来，为了确保在没有携带令牌时请求会失败，我们试试发出相同的请求，但没有带上授权头：
 
 ```javascript
 const Partypass = require('partypass')
@@ -1033,19 +1031,20 @@ const run = async () => {
 run()   // run it!
 ```
 
-It will print:
+将打印下面信息：
 
 ```
 { error: 'not logged in' }
 ```
 
-## One-liner login/logout
+## 一行代码实现 登录/注销
 
-We've looked at ways to authenticate using JavaScript. But there's an even simpler way to get started. All you need to do is send users to a "gate" page.
+我们已经研究了使用 JavaScript 进行身份验证的方法。 但是还有一种更简单的入门方法。 您需要做的就是将用户登录信息发送到 “gate” 页面。
 
-### Server
+### 服务端 （Server）
 
-Let's first set up a simple Privateparty server by writing a file named `app.js`.
+我们首先编写一个名为 `app.js` 的文件来设置一个简单的 OpenAvatar-SDK 服务端。
+
 
 ```javascript
 const party = new Privateparty()
@@ -1056,11 +1055,12 @@ party.app.get("/", (req, res) => {
 party.app.listen(3000)
 ```
 
-When a user goes to the `/` route, it will display the `index.html` page regardless of whether logged in or not. Let's take a look at the `index.html` file:
+当用户进入`/`路由时，无论是否登录，都会显示`index.html`页面。 我们看一下 `index.html` ：
 
-### Client
+### 客户
 
-The following code does not use any Javascript code to authenticate. Instead, just by adding one line `<a id='account' href='/privateparty/gate/user?callback=/'></a>`, the user can click to open a "gate" page to login or logout, and come back (kind of like opening a facebook login page for "facebook connect" and redirecting back after logging in):
+以下代码不使用任何 JS 代码进行身份验证。 相反，只需添加一行代码`<a id='account' href='/privateparty/gate/user?callback=/'></a>`，用户就可以点击打开“gate”页面来登录或注销，然后返回（有点像为“facebook connect”打开一个 facebook 登录页面并在登录后重定向回来）：
+
 
 ```html
 <html>
@@ -1090,28 +1090,28 @@ render()
 ```
 
 Run the server with `node app.js` and go to http://localhost:3000 - you will see:
+运行 `node app.js` 启动服务器并访问 http://localhost:3000 - 会看到：
 
 ![gate.gif](gate.gif)
 
-> Pay attention to how the browser URL changes.
-> 
-> - When the user clicks "login" it goes to /privateparty/gate/user?callback=/
-> - Then after logging in, it automatically redirects back to "/" because of the callback
-> - Same process for the logout. After logging out, it automatically redirects back to "/"
+> 注意浏览器 URL 的变化。
+>
+> - 当用户点击“登录”时，它会转到 /privateparty/gate/user?callback=/
+> - 登录后自动重定向回“/”，因为回调
+> - 注销过程相同。注销后，它会自动重定向回“/”
 
-Let's go through the HTML to see what's going on.
+让我们通过 HTML 来看看发生了什么。
 
-1. First of all, the `render()` method checks the `user` session and displays the account if logged in, otherwise "login". This part we are familiar with.
-2. Next, notice the `<a>` tag. It has an `href` attribute of `/privateparty/gate/user?callback=/`. Let's break this down.
-    - The `/privateparty/gate/user` is the default route for the built-in "gate" page, which lets the user login (if logged out) or log out (if logged in).
-      - This route is automatically generated from the role name. For example, to send a user to an `admin` role login page, the link would be `/privateparty/gate/admin`.
-    - The `?callback=/` part tells the gate page which URL to redirect the user to after logging in (or logging out).
-      - In this case, we want the login page to automatically send the user back to the `/` route, so the `callback` is `/`.
+1. 首先，`render()` 方法检查 `user` 会话，如果已经登录则显示帐户信息，否则就 “登录”。这部分我们很熟悉。
+2. 接下来，注意 `<a>` 标签。它有一个 `/privateparty/gate/user?callback=/` 的 `href` 属性。让我们分解一下。
+    - `/privateparty/gate/user` 是内置“gate”页面的默认路由，允许用户登录（如果已注销）或注销（如果已登录）。
+      - 该路由是根据角色名称自动生成的。例如，要将用户发送到“admin”角色登录页面，链接将是“/privateparty/gate/admin”。
+    - `?callback=/` 部分告诉网关页面在用户登录（或注销）后将其重定向到哪个 URL。
+      - 在这种情况下，我们希望登录页面自动将用户送回`/`路由，所以`callback`是`/`。
 
-### Mobile support
+### 移动端支持
 
-To automatically support mobile wallets for the built-in gate page, you need to initialize the Privateparty with a custom `gate` config with the `walletconnect` attribute (the Infura ID):
-
+要自动支持内置gate页面的移动钱包，您需要使用带有 `walletconnect` 属性（Infura ID）的自定义 `gate` 配置，来初始化 Privateparty ：
 
 ```javascript
 const party = new Privateparty({
@@ -1127,58 +1127,59 @@ party.app.listen(3000)
 ```
 
 
-## More examples
+## 更多示例
 
-Check out the [demo folder](https://github.com/privatepart/privateparty/tree/main/demo) on GitHub for more examples.
+查看 GitHub 上的 [demo 文件夹](https://github.com/openavatar/openavatar-server/tree/main/demo) 以获取更多示例。
 
-## React component
+## React 组件
 
-Using react? Try the react component: [Partybutton](https://partybutton.papercorp.org/)
+如果使用 react? 可以试试 react 组件: [Partybutton](https://partybutton.papercorp.org/)
 
 ![partybutton.png](partybutton.png)
 
 ---
 
-# Install
+# 安装
 
-You can implement a Privateparty web app with 2 libraries (server-side and client-side) that talk to each other:
+可以使用2个库（服务器端和客户端）来实现 OpenAvatar Web3 应用程序：
 
-1. `privateparty`: The server-side module
-2. `partyconnect`: The browser client for privateparty => automatically uses the browser wallets and sets the cookies after logging in.
-3. `partypass`: The node.js client for privateparty => stateless client for making a request to a privateparty server and getting back a new session in a JWT.
+1. `privateparty`：OpenAvatar 服务器端模块 
+2. `partyconnect`：OpenAvatar 的浏览器客户端=>登录后自动使用浏览器钱包并设置cookies。
+3. `partypass`：OpenAvatar 的 node.js 客户端 => 无状态客户端，用于向 OpenAvatar 服务器发出请求并在 JWT 中取回新会话。
+4. 
 
-## Server
+## 服务端（Server）
 
-To install:
+安装服务端:
 
 ```
 npm install privateparty
 ```
 
-Then, use the module in your app like this:
+然后，在你的应用程序中使用该模块，如下所示：
 
 ```javascript
 const Privateparty = require('privateparty')
 const party = new Privateparty()
 ```
 
-## Browser client
+## 浏览器客户端
 
-### Load from CDN
+### 从CDN加载
 
-Include in your frontend web app:
+如下所示，在前端APP里（从CDN）加载
 
 ```html
 <script src="https://unpkg.com/partyconnect/dist/partyconnect.js"></script>
 ```
 
-### Import
+### 引入（Import）
 
 ```
 npm install partyconnect
 ```
 
-Then initialize with:
+然后进行初始化：
 
 ```javascript
 // CJS
@@ -1186,7 +1187,7 @@ const Privateparty = require('partyconnect')
 const party = new Privateparty(config)
 ```
 
-or
+或者
 
 ```javascript
 // ESM
@@ -1194,17 +1195,17 @@ import Privateparty from 'partyconnect'
 const party = new Privateparty(config)
 ```
 
-> If the code works fine but you're having trouble when you're trying to package for production with webpack, it's probably because webpack 5 has started excluding node.js core modules (for any library that uses node.js core modules). See this article to learn how to resolve this issue: https://www.alchemy.com/blog/how-to-polyfill-node-core-modules-in-webpack-5
+> 如果代码运行正常，但在尝试使用 webpack 打包生产时遇到问题，可能是因为 webpack 5 已开始去除 node.js core module（对于任何使用 node.js 核心模块的库）。 请参阅本文以了解如何解决此问题：https://www.alchemy.com/blog/how-to-polyfill-node-core-modules-in-webpack-5
 
-## Node.js client
+## Node.js 客户端
 
-### Import
+### 导入（Import）
 
 ```
 npm install partypass
 ```
 
-Then initialize with:
+然后初始化:
 
 ```javascript
 // CJS
@@ -1212,7 +1213,7 @@ const Partypass = require('partypass')
 const pass = new Partypass(config)
 ```
 
-or
+或者
 
 ```javascript
 // ESM
@@ -1220,13 +1221,13 @@ import Partypass from 'partypass'
 const pass = new Partypass(config)
 ```
 
-### Load from CDN
+### 从CDN加载
 
-Although partypass is a node.js client, you can use it in the web in certain cases.
+虽然partypass 是一个node.js客户端，但在某些情况下您可以在Web环境中使用它。
 
-For example, a server may use `pass.build()` to create a pass creation request, and send it to the user's browser, where the user makes the request using `pass.request()`. In this case you can also use the CDN JS:
+例如，服务器可以使用`pass.build()`创建一个pass创建请求，并将其发送到用户的浏览器，用户使用`pass.request()`发出请求。 在这种情况下，您还可以使用 CDN JS：
 
-Include in your frontend web app:
+包括在web前端应用中：
 
 ```html
 <script src="https://unpkg.com/partypass/dist/partypass.js"></script>
@@ -1236,54 +1237,55 @@ Include in your frontend web app:
 
 # API
 
-## Server
+## 服务端（Server）
 
-For the backend, you need to use the package `privateparty`. Simply instantiate a new `Privateparty` instance and it should give you everything you need to build a wallet protected web app backend.
+对于后端需要使用包 `privateparty`。 只需实例化一个新 `Privateparty` 实例，它就会为您搭建一个Web3钱包保护的 Web 应用后端。
 
-### constructor
+### 构造函数
 
-#### syntax
+#### 语法
 
 ```javascript
 const party = new Privateparty(config)
 ```
 
-#### parameters
+#### 参数
 
-- `config`: privateparty server configuration
-  - `secret`: **(optional)** a string used for signing cookies
-    - See https://github.com/expressjs/cookie-parser#cookieparsersecret-options
-    - If not specified, it will autogenerate a secret everytime the server restarts using [uuid](https://github.com/uuidjs/uuid).
-  - `cors`: **(optional)** If you want to support CORS (cross origin requests) pass this attribute.
-    - See https://github.com/expressjs/cors#configuration-options
-  - `app`: **(optional)** Inject an existing instantiated express.js app instance
-  - `express`: **(optional)** Inject an existin express module
-  - `gate`: **(optional)** The built-in gate page config
-    - `walletconnect`: The Walletconnect Infura ID, to support mobile wallets.
-    - `fresh`: when using the default login page, whether the login should ask the user to (re-)connect a wallet from the wallet list, or to use the previously connected wallet if still connected
-      - if `true`, the login attempt always displays all the wallets from the list and lets the user select one
-      - if `false`, tries to immediately use a previously selected wallet to skip the wallet selection step (This is the default)
+- `config`: openavatar 服务端配置 
+  - `secret`: **(可选)** 用于签署 cookie 的字符串
+    - 参考 https://github.com/expressjs/cookie-parser#cookieparsersecret-options
+    - 如果未指定，它将在每次服务器重新启动时使用uuid自动生成一个secret密钥 [uuid](https://github.com/uuidjs/uuid).
+  - `cors`: **(可选)** 如果您想支持 CORS（跨源请求），请添加此属性。
+    - 参考 https://github.com/expressjs/cors#configuration-options
+  - `app`: **(可选)** 注入现有 express.js 应用实例
+  - `express`: **(可选)** 注入一个现有的 express 模块
+  - `gate`: **(可选)** 内置gate页面配置
+    - `walletconnect`: Walletconnect Infura ID，用于支持移动钱包。
+    - `fresh`: 使用默认登录页面时，登录是否要求用户（重新）连接钱包列表中的钱包，或者如果仍然连接则使用之前连接的钱包
+       - 如果设置 `true`，登录总是显示列表中的所有钱包并让用户选择一个
+       - 如果设置 `false`，跳过钱包选择步骤，使用之前选择的钱包（这是默认设置）
 
-#### return value
+#### 返回值
 
-- `party`: The initialized privateparty instance, which contains the following attributes:
-  - `app`: an "app" instance created internally by calling `const app = express()`
-  - `express`: the express module
-  - `auth`: authentication & authorization function
-  - `protect`: authentication & authorization function + error handling
-  - `add`: a function to add authorization groups
+- `party`: 经过初始化的 privateparty 实例，包含以下属性：
+  - `app`: 通过调用 `const app = express()` 在内部创建的“app”实例
+  - `express`: express 模块
+  - `auth`: 认证授权功能
+  - `protect`: 认证授权功能+错误处理
+  - `add`: 添加授权组的功能
 
 > the `auth` method only tells you if the authorization results in a legitimate session or not, whereas the `protect` method is used to do what `auth` does but also automatically redirect to a logged out page or display a logged out page.
+> `auth` 方法仅告诉你授权是否生成合法会话，而 `protect` 方法用于执行 `auth` 所做功能，但会自动重定向到已注销的页面或显示已注销的页面 .
 
-#### examples
+#### 示例
 
-##### 1. minimal server
+##### 1. 最小化服务端
 
 ```javascript
 const party = new Privateparty()
 ```
 
-##### 2. server with a fixed signing secret
+##### 2. 具有固定签名密钥的服务器
 
 ```javascript
 const party = new Privateparty({
@@ -1291,9 +1293,11 @@ const party = new Privateparty({
 })
 ```
 
-##### 3. cross origin login support
+##### 3. 跨域登录
 
 In the following example, we have a privateparty server running at port 3001, and it allows requests from not just the port 3001 but also 3000, since we specified the origin http://localhost:3000
+
+在下面的例子中，我们有一个运行在 3001 端口的 openavatar 服务器，它不仅允许来自端口 3001 的请求，还允许来自 3000 的请求，因为我们指定了源 http://localhost:3000
 
 ```javascript
 const party = new Privateparty({
@@ -1305,9 +1309,9 @@ const party = new Privateparty({
 party.listen(3001)
 ```
 
-##### 4. cross origin login with dynamic origin parsing
+##### 4. 具有动态源解析的跨域登录
 
-Using the dynamic origin configuration option from the CORS module (https://github.com/expressjs/cors#configuring-cors-w-dynamic-origin), you can dynamically parse request origins and authorize:
+使用 CORS 模块 (https://github.com/expressjs/cors#configuring-cors-w-dynamic-origin) 中的动态源配置选项，您可以动态解析请求源并授权：
 
 ```javascript
 const party = new Privateparty({
@@ -1326,7 +1330,7 @@ const party = new Privateparty({
 party.listen(3001)
 ```
 
-##### 5. integrate with an existing express.js app
+##### 5. 与已有 express.js 应用集成
 
 ```javascript
 const express = require('express')
@@ -1359,35 +1363,34 @@ app.listen(port, () => {
 
 ### add()
 
-Add a group to the party
+添加一个组到 OpenAvatar
 
-#### syntax
+#### 语法
 
 ```javascript
 await party.add(name, config)
 ```
 
-#### parameters
+#### 参数
 
-- `name`: group name (must be unique per group)
-- `config`: configuration options for each group
-  - `session`: (optional) The GET path to query the current session for this engine. (default: `/privateparty/session/${name}`)
-  - `connect`: (optional) The POST path to create a session for this engine (default: `/privateparty/connect/${name}`)
-  - `disconnect`: (optional) The POST path to destroy a session for this engine (default: `/privateparty/disconnect/${name}`)
-  - `gate`: (optional) The gate page route for this engine (The "login/logout" page) (default: `privateparty/gate/${name}`)
-  - `authorize`: a function that takes two or more arguments `req` (The incoming request object passed from express), `account` (The authenticated wallet address), and optionally `contracts` (only when you specify another attribute `contract`, explained below). 
-    - To disallow a session based on the request, simply throw an error in the function.
-    - To authorize the session, don't throw a function. Additionally, the return value of this function will be automatically set as the `auth` attribute of the session
-  - `expire`: (optional) The session duration (how many seconds until a session expires). The default is `1000 * 60 * 60 * 24 * 30` (30 days).
-  - `tokens`: (optional) an array of access tokens to allow
-  - `contracts`: (optional) a declarative object for defining one or more contracts, which will be initialized and injected in to the `authoirze()` handler
+- `name`: 组名 (每个组必须唯一)
+- `config`: 每个组的配置选项
+  - `session`：（可选）查询此引擎当前会话的 GET 路径。 （默认：`/privateparty/session/${name}`）
+  - `connect`：（可选）为此引擎创建会话的 POST 路径（默认值：`/privateparty/connect/${name}`）
+  - `disconnect`：（可选）销毁此引擎会话的 POST 路径（默认值：`/privateparty/disconnect/${name}`）
+  - `gate`：（可选）此引擎的网关页面路由（“登录/注销”页面）（默认：`privateparty/gate/${name}`）
+  - `authorize`：一个接受两个或多个参数的函数`req`（从express传递的传入请求对象），`account`（经过身份验证的钱包地址）和可选的`contracts`（仅当您指定另一个属性`contracts `，解释如下）。
+    - 要禁止基于请求的会话，只需在函数中抛出错误。
+    - 要授权会话，请不要抛出函数。另外，这个函数的返回值会自动设置为会话的 `auth` 属性
+  - `expire`：（可选）会话持续时间（会话过期的秒数）。默认值为“1000 * 60 * 60 * 24 * 30”（30 天）。
+  - `tokens`：（可选）允许访问令牌的数组
+  - `contracts`：（可选）用于定义一个或多个合约的声明性对象，它将被初始化并注入到 `authoirze()` 处理程序
 
-
-#### return value
+#### 返回值
 
 none
 
-#### example
+#### 示例
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -1442,14 +1445,14 @@ party.app.listen(3000)
 
 ### auth()
 
-The authorization middleware you can add to any route.
+授权中间件，可以添加到任何路由中。
 
-To add authorization logic to any route, you need to:
+要将授权逻辑添加到任何路由，您需要：
 
-1. First define an authrorization group and its behavior through the `add()` method
-2. Then make use of the group by calling `party.auth(name)`
+1. 首先通过`add()`方法定义一个授权组及其行为
+2. 然后通过调用 `party.auth(name)` 来使用该组
 
-#### syntax
+#### 语法
 
 ```javascript
 party.app.get(route1, party.auth(name), (req, res) => {
@@ -1460,16 +1463,16 @@ party.app.post(route2, party.auth(name), (req, res) => {
 })
 ```
 
-#### parameters
+#### 参数
 
-- `name`: The authorization group name to use for the route handler
+- `name`: 用于路由处理程序的授权组名称
 
 
-#### examples
+#### 示例
 
-##### 1. Default authentication
+##### 1. 缺省身份验证
 
-The following example simply authenticates a user's account based on the wallet signature.
+以下示例仅根据钱包签名对用户帐户进行身份验证。
 
 ```javascript
 const party = new Privateparty()
@@ -1480,20 +1483,21 @@ party.app.get("/", party.auth("user"), (req, res) => {
 })
 ```
 
-1. The `party.add("user"` line will create a group named "user", which automatically creates the following routes:
-    - `POST /privateparty/connect`
-    - `POST /privateparty/disconnect`
-    - `GET /privateparty/session`
-2. Then the express app instance (`party.app`) handles the `GET /` request. But before that, it goes through the `party.auth("user")` middleware.
-3. Since the `party.add("user")` did not specify any authorization logic, it will just allow all requests.
-4. Therefore, when a user first visits the `/` route, the `req.session` will be null but...
-3. After authenticating from the frontend, the `req.session` will contain `{ "user": { "account": <user address> } }`
 
-##### 2. Authorization
+1. `party.add("user"` 将创建一个名为 "user" 的组，它会自动创建以下路由：
+     - `POST /privateparty/connect`
+     - `POST /privateparty/disconnect`
+     - `GET /privateparty/session`
+2. 然后 express 应用实例（`party.app`）处理 `GET /` 请求。 但在此之前，它会通过 `party.auth("user")` 中间件。
+3. 由于 `party.add("user")` 没有指定任何授权逻辑，所以允许所有请求。
+4. 因此，当用户第一次访问`/`路由时，`req.session`将为空，但是...
+5. 前端认证后，`req.session` 将包含 `{ "user": { "account": <user address> } }`
 
-By default, Privateparty logs everyone in. But often you will want to only allow certain people in.
+##### 2. 授权
 
-You can achieve this with an `authorize(req, account)` function:
+默认情况下，Privateparty 让所有人都登录。但通常你想仅允许某些人登录。
+
+可以使用 `authorize(req, account)` 函数实现此目的：
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -1520,20 +1524,18 @@ party.app.get("/", party.auth("user"), (req, res) => {
 party.app.listen(3000)
 ```
 
-Note that we are:
+请注意：
 
-1. adding a group named `"user"`
-2. and then using the group in the `party.app.get("/", party.auth("user", (req, res) => { . . . })` handler.
+1. 添加一个名为 `"user"`的组
+2. 然后在 `party.app.get("/", party.auth("user", (req, res) => { . . . })` 句柄程序中使用该组。
 
 
-##### 3. Multiple auth engines
+##### 3. 多身份验证引擎
 
-Sometimes you may want to serve different content based on different roles. You can create roles with engines.
+在下面的代码中，我们使用了 2 个引擎：
 
-In the following code, we are using 2 engines:
-
-1. user: normal user login flow. sign everyone in
-2. admin: admin user login flow. check if the account is included in the ADMIN array, and if not, throw an error
+1. user：普通用户登录流程。 运行所有人登录
+2. admin：管理员用户登录流程。 检查帐户是否包含在 ADMIN 数组中，如果没有，则抛出错误
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -1567,31 +1569,30 @@ party.app.get("/admin", party.auth("admin"), (req, res) => {
 party.app.listen(3000)
 ```
 
-Note that we have two `GET` route handlers here:
+请注意，我们在这里有两个 `GET` 路由处理程序：
 
-1. `GET /`: The normal route for normal users. Because we're using `auth("user")`, it will use the `user` group.
-2. `GET /admin`: The page where the admins can login. Because we're using `auth("admin")`, it will use the `admin` group.
-
+1. `GET /`：普通用户的正常路由。 因为我们使用的是 `auth("user")`，所以它将使用 `user` 组。
+2. `GET /admin`：管理员可以登录的页面。 因为我们使用的是 `auth("admin")`，所以它将使用 `admin` 组。
 
 ### protect()
 
-Like `auth()`, but automatically redirects to the built-in login page if not authorized.
+与 auth() 类似，另外如果未授权，则会自动重定向到内置登录页面。
 
-> The `auth()` method returns a `null` value for `req.session` when not authorized, and that's all. The `protect()` method actually redirects to the login page.
+> `auth()` 方法在未授权时 `req.session` 返回一个`null` 值，仅此而已。 `protect()` 方法重定向到登录页面。
 
-To add the protection logic to any route, you need to:
+要将保护逻辑添加到任何路由，您需要：
 
-1. First define an authrorization group and its behavior through the `add()` method
-2. Then make use of the group by calling `party.protect(name)`
+1. 首先通过`add()`方法定义一个授权组及其行为
+2. 然后通过调用 `party.protect(name)` 来使用该组
 
-#### syntax
+#### 语法
 
 
 ```javascript
 party.protect(name, options)
 ```
 
-Example usage:
+示例用法:
 
 ```javascript
 party.app.get(route1, party.protect(name), (req, res) => {
@@ -1604,27 +1605,25 @@ party.app.post(route2, party.protect(name), (req, res) => {
 
 
 
-#### parameters
+#### 参数
 
-- `name`: The authorization group name to use for the route
-- `options`: additional information about the protection
-  - `redirect`: The web route to redirect to when logged out. For example you can set up an additional route that displays a web page when logged out.
-  - `render`: The HTML file path to render when logged out.
-  - `json`: The JSON object to return when logged out, and the request was made as an API request (not a website)
-  - `walletconnect`: The Walletconnect Infura ID, to support mobile wallets.
-  - `fresh`: when using the default login page, whether the login should ask the user to (re-)connect a wallet from the wallet list, or to use the previously connected wallet if still connected
-    - if `true`, the login attempt always displays all the wallets from the list and lets the user select one
-    - if `false`, tries to immediately use a previously selected wallet to skip the wallet selection step (This is the default)
+- `redirect`：注销时重定向的路由。例如，您可以设置一个额外的路由，在注销时显示一个页面。
+  - `render`：注销时要渲染的 HTML 文件路径。
+  - `json`：注销时返回的 JSON 对象，作为 API 请求发出（不是网站）
+  - `walletconnect`：Walletconnect Infura ID，支持移动钱包。
+  - `fresh`：使用默认登录页面时，登录是否要从钱包列表中（重新）连接一个钱包，如果仍然在连接，则使用之前连接的钱包
+    - 如果设置 `true`，登录显示列表中的所有钱包，并让用户选择一个
+    - 如果设置 `false`，跳过钱包选择步骤，使用之前选择的钱包（这是默认设置）
 
-The difference between the `redirect` and the `render` option is that, the `redirect` sends the user to a different designated route (for example a `/login` route), whereas `render` DOES NOT take the user to any other URL but just displays the supplied HTML.
+`redirect` 和 `render` 选项之间的区别在于，`redirect` 将用户发送到不同的指定路由（例如 `/login` 路由），而 `render` 不会将用户带到任何其他 URL，只显示提供的 HTML。
 
-#### examples
+#### 示例
 
-All examples in this section are the same as the `auth()` examples, except that you're using `party.protect()` instead of `party.auth()`.
+本节中的所有示例都与 `auth()` 示例相同，只是你使用的是 `party.protect()` 而不是 `party.auth()`。
 
-##### 1. Default protection
+##### 1. 缺省保护
 
-The following example simply authenticates a user's account based on the wallet signature.
+以下示例仅基于钱包签名，来对用户帐户进行身份验证。
 
 ```javascript
 const party = new Privateparty()
@@ -1635,22 +1634,22 @@ party.app.get("/", party.protect("user"), (req, res) => {
 })
 ```
 
-1. The `party.add("user"` line will create a group named "user", which automatically creates the following routes:
-    - `POST /privateparty/connect`
-    - `POST /privateparty/disconnect`
-    - `GET /privateparty/session`
-2. Then the express app instance (`party.app`) handles the `GET /` request. But before that, it goes through the `party.protect("user")` middleware.
-3. Since the `party.add("user")` did not specify any authorization logic, it will just allow all requests.
-4. Therefore, when a user first visits the `/` route, the `req.session` will be null but...
-3. After authenticating from the frontend, the `req.session` will contain `{ "user": { "account": <user address> } }`
+1. `party.add("user"` 将创建一个名为 "user" 的组，它会自动创建以下路由：
+     - `POST /privateparty/connect`
+     - `POST /privateparty/disconnect`
+     - `GET /privateparty/session`
+2. 然后 express app 实例（`party.app`）处理`GET /`请求。 在此之前，它会通过 `party.protect("user")` 中间件。
+3. `party.add("user")` 未指定任何授权逻辑，所以允许所有请求。
+4. 因此，当用户第一次访问`/`路由时，`req.session`将为空，但是...
+5. 前端认证后，`req.session` 将包含 `{ "user": { "account": <user address> } }`
 
-Unlike the `auth()` example, when you first visit the `/` route, Privateparty will automatically redirect you to its built-in login page.
+与 `auth()` 示例不同，当您第一次访问 `/` 路由时，Privateparty 会自动将您重定向到其内置的登录页面。
 
-##### 2. Authorization
+##### 2. 授权
 
-By default, Privateparty logs everyone in. But often you will want to only allow certain people in.
+缺省情况下，Privateparty 允许所有人登录。如果只允许某些人登录。
 
-You can achieve this with an `authorize(req, account)` function:
+可以使用 `authorize(req, account)` 函数实现此目的：
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -1677,20 +1676,20 @@ party.app.get("/", party.protect("user"), (req, res) => {
 party.app.listen(3000)
 ```
 
-Note that we are:
+注意：
 
-1. adding a group named `"user"`
-2. and then using the group in the `party.app.get("/", party.protect("user", (req, res) => { . . . })` handler.
+1. 添加一个名为`"user"`的组
+2. 然后在 `party.app.get("/", party.protect("user", (req, res) => { . . . })` 句柄程序中使用组。
 
 
-##### 3. Multiple protection engines
+##### 3. 多重保护引擎
 
-Sometimes you may want to serve different content based on different roles. You can create roles with engines.
+如果需要为不同的角色提供不同的内容。 可以使用引擎创建角色。
 
-In the following code, we are using 2 engines:
+在下面的代码中，我们使用了 2 个引擎：
 
-1. user: normal user login flow. sign everyone in
-2. admin: admin user login flow. check if the account is included in the ADMIN array, and if not, throw an error
+1. user：普通用户登录流程。 让所有人登录
+2. admin：管理员用户登录流程。 检查帐户是否包含在 ADMIN 数组中，如果没有，则抛出错误
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -1725,17 +1724,16 @@ party.app.get("/admin", party.protect("admin"), (req, res) => {
 party.app.listen(3000)
 ```
 
-Note that we have two `GET` route handlers here:
+请注意，我们在这里有两个 `GET` 路由处理程序：
 
-1. `GET /`: The normal route for normal users. Because we're using `party.protect("user")`, it will use the `user` group.
-2. `GET /admin`: The page where the admins can login. Because we're using `party.protect("admin")`, it will use the `admin` group.
+1.`GET /`：普通用户的正常路由。 因为我们使用的是 `party.protect("user")`，所以它将使用 `user` 组。
+2. `GET /admin`：管理员可以登录的页面。 因为我们使用的是 `party.protect("admin")`，所以它将使用 `admin` 组。
 
+##### 4. 自定义注销流程
 
-##### 4. Custom logged out handling
+默认情况下，`protect()` 修饰符会自动将用户发送到登录页面，让用户登录该角色。
 
-By default the `protect()` modifier automatically sends the users to the built-in login page where the user can log in for that role.
-
-But if you want a custom handler, you can do something like this:
+如果你想要一个自定义处理程序，可以这样做：
 
 
 ```javascript
@@ -1763,8 +1761,7 @@ party.app.get("/", party.protect("user", { redirect: "/login" } ), (req, res) =>
 party.app.listen(3000)
 ```
 
-Or if you DO NOT want to send the user to a new route but just display the error, you can use the `render` option:
-
+或者，如果您不想将用户发送到新路由，只想显示错误，可以使用 `render` 选项：
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -1788,11 +1785,11 @@ party.app.get("/", party.protect("user", { render: __dirname + "/login.html" } )
 party.app.listen(3000)
 ```
 
-##### 5. Token authentication
+##### 5. Token 令牌认证
 
-In addition to using the authenticted user's credentials for authorizing, you can use access token based authorization.
+除了使用已登录用户的身份验证凭据进行授权之外，您还可以使用访问令牌的进行授权。
 
-Here's an example:
+示例如下：
 
 
 ```javascript
@@ -1816,12 +1813,12 @@ party.app.get("/", party.protect("user"), (req, res) => {
 ```
 
 
-This will:
+这将：
 
-1. Allow ALL authenticated user to log in in the browser using cookies (since there is no `authorize()` callback to restrict access
-2. Allow only those who have access to the access tokens `01127c36-32fa-4c85-b6da-f720796fe679` and `35161a5c-60f0-4809-8b49-1a662247f5b3` to make request to the app.
+1. 允许所有经过身份验证的用户使用cookies登录浏览器（因为没有`authorize()`回调来限制访问
+2. 仅允许拥有访问代币 “01127c36-32fa-4c85-b6da-f720796fe679” 和 “35161a5c-60f0-4809-8b49-1a662247f5b3” 的用户访问应用。
 
-To make an access token authenticated request, you need to set the HTTP request header's `Authorization` field as `token <ACCESS_TOKEN>`. Example:
+要请求令牌认证，您需要将 HTTP 请求头的 `Authorization` 字段设置为 `token <ACCESS_TOKEN>`。 例子：
 
 ```javascript
 fetch("https://protectedendpoint.com/api", {
@@ -1835,9 +1832,9 @@ fetch("https://protectedendpoint.com/api", {
 })
 ```
 
-##### 6. Mobile wallet support
+##### 6. 手机钱包支持
 
-The following example simply authenticates a user's account based on the wallet signature.
+以下示例根据钱包签名对用户帐户进行身份验证。
 
 ```javascript
 const party = new Privateparty()
@@ -1853,27 +1850,27 @@ party.app.get("/", party.protect("user", { walletconnect: "667750972a89441ea5d27
 
 ### contract()
 
-Creates and returns a web3 contract methods object, which can be chained to call web3 methods.
+创建并返回一个 web3 合约方法对象，可以链接调用 web3 方法。
 
-#### syntax
+#### 语法
 
 ```javascript
 const methods = party.contract(web3, abi, contract_address)
 ```
 
-#### parameters
+#### 参数
 
-- `web3`: an initialized web3 object
-- `abi`: an ABI array
-- `contract_address`: the contract address
+- `web3`: 初始化的 web3 对象
+- `abi`: ABI 数组
+- `contract_address`: 合约地址
 
-#### examples
+#### 示例
 
-##### 1. Token balance contract calls
+##### 1. 代币余额合约调用
 
-To authorize users based on the blockchain state associated with their authenticated wallet accounts, you will need to query the blockchain.
+要根据钱包帐户的状态和数据授权用户，需要查询区块链。
 
-In this case you will need to instantiate a web3 object and use the built-in `contract()` convenience method to call web3 contract methods
+这种情况下，需要实例化一个 web3 对象并使用内置的 `contract()` 方法来调用 web3 合约方法
 
 ```javascript
 // Example. Use your own RPC URL
@@ -1904,7 +1901,7 @@ party.add("user", {
 })
 ```
 
-Or equivalently, you can use the built-in `party.abi.erc721` instead of hardcoding the `const abi` part, like this:
+或可以使用内置的 `party.abi.erc721` 而不是硬编码 `const abi` ，如下所示：
 
 ```javascript
 // Example. Use your own RPC URL
@@ -1926,11 +1923,11 @@ party.add("user", {
 })
 ```
 
-##### 2. Admin login
+##### 2. 管理员登录
 
-Sometimes you may want to build an adming interface that ONLY allows the owner of the contract to login.
+有时你想要构建一个只允许合约所有者登录的管理页面。
 
-Privateparty includes an abi interface for [ownable](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol) in addition to erc20 and erc721 ABIs, so you can take advantage of this as well:
+除了 erc20 和 erc721 ABI 之外，Privateparty 还有一个适用于合约所有者的 ABI 接口可以调用 [ownable](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol) ：
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -1955,12 +1952,12 @@ party.add("admin", {
 
 ### abi
 
-Built-in convenience module for frequently used ABIs:
+常用 ABI 的内置常用模块：
 
 #### 1. erc20
 
 ```javascript
-// use the party.abi.erc20 instead of hardcoding the ABI
+// 使用 party.abi.erc20 而不是硬编码 ABI
 const party = new Privateparty()
 let balance = await party.contract(web3, party.abi.erc20, UNISWAP_ADDRESS).balanceOf(account).call()
 ```
@@ -1968,12 +1965,12 @@ let balance = await party.contract(web3, party.abi.erc20, UNISWAP_ADDRESS).balan
 #### 2. erc721
 
 ```javascript
-// use the party.abi.erc721 instead of hardcoding the ABI
+//使用 party.abi.erc721 而不是硬编码 ABI
 const party = new Privateparty()
 let tokenURI = await party.contract(web3, party.abi.ownable, MFERS_NFT_ADDRESS).tokenURI(tokenId).call()
 ```
 
-#### 3. ownable
+#### 3. ownable （所有者的）
 
 ```javascript
 // use the party.abi.ownable instead of hardcoding the ownable ABI
@@ -1983,11 +1980,11 @@ let owner = await party.contract(web3, party.abi.ownable, mfers).owner().call()
 
 ### app
 
-The `app` object internally created with `app = express()`.
+使用 `app = express()` 在内部创建的 `app` 对象。
 
-You can use the `app` object just like you would with any express app instance.
+您可以像使用任何 express app 应用实例一样使用 `app` 对象。
 
-#### examples
+#### 示例
 
 ```javascript
 const party = new Privateparty()
@@ -2013,42 +2010,42 @@ The expressjs module.
 
 
 
-## Browser client
+## 浏览器客户端 
 
-### constructor
+### constructor（构造函数）
 
-#### syntax
+#### 语法
 
 ```javascript
 const party = new Privateparty(config)
 ```
 
-#### parameters
+#### 参数
 
-- `config`: configuration
-  - `host`: **(optional)** specify the host in case you wish to make a cross-origin request to a privateparty server hosted on another domoain.
-  - `walletconnect`: **(optional)** Specify this field to support mobile and desktop wallets. The `walletconnect` attribute is the [Walletconnect infuraId attribute](https://github.com/Web3Modal/web3modal/blob/master/docs/providers/walletconnect.md?plain=1#L22) (Go to [Infura](https://infura.io/) to sign up and get the Infura project ID).
+- `config`：配置
+   - `host`: **（可选）** 如果您希望向托管在另一个 domoain 上的openavatar服务器发出跨域请求，请指定主机。
+   - `walletconnect`：**（可选）** 指定此字段以支持移动和桌面钱包。 `walletconnect` 属性是 [Walletconnect infuraId 属性](https://github.com/Web3Modal/web3modal/blob/master/docs/providers/walletconnect.md?plain=1#L22) (转到 [Infura]( https://infura.io/) 注册并获取 Infura 项目 ID)。
 
-#### return value
+#### 返回值
 
-- `party`: An instantiated privateparty client
+- `party`: 实例化的OpenAvatar客户端
 
-#### examples
+#### 示例
 
-##### 1. basic
+##### 1. 基础示例
 
 ```javascript
 const party = new Privateparty()
 ```
 
-##### 2. cross origin connection
+##### 2. 跨域链接
 
-Let's say your privateparty server is running at https://myprivatepartyserver.com - You can connect to it using the `host` attribute.
+假设您的openavatar服务器在 https://myprivatepartyserver.com 上运行 - 您可以使用 `host` 属性连接到它。
 
-> **NOTE**
+> **注意**
 >
-> You MUST set the CORS support on the server side to make this work http://localhost:56503/#/?id=_3-cross-origin-login-support
-
+> 您必须在服务器端设置 CORS 支持才能使其正常工作 http://localhost:56503/#/?id=_3-cross-origin-login-support
+> 
 ```javascript
 const party = new Privateparty({
   host: "https://myprivatepartyserver.com"
@@ -2056,13 +2053,13 @@ const party = new Privateparty({
 ```
 
 
-##### 3. mobile & desktop wallet support
+##### 3. 移动和桌面钱包支持
 
-To support mobile and desktop wallets, we need to use [Walletconnect](https://walletconnect.com/). For this, we need to get a project ID from [Infura](https://infura.io) and set it as the `walletconnect` attribute. Example:
+为了支持手机和桌面钱包，我们需要使用[Walletconnect](https://walletconnect.com/)。 为此，我们需要从 [Infura](https://infura.io) 获取项目 ID 并将其设置为 `walletconnect` 属性。 例子：
 
 ```javascript
 const party = new Privateparty({
-  walletconnect: "27e484dcd9e3efcfd25a83a78777cdf1"   // USE YOUR OWN INFURA ID!
+  walletconnect: "27e484dcd9e3efcfd25a83a78777cdf1"   // 使用你自己的 INFURA ID!
 })
 ```
 
@@ -2070,36 +2067,36 @@ const party = new Privateparty({
 
 ### connect()
 
-#### syntax
+#### 语法
 
 ```javascript
 let session = await party.connect(name, payload, options)
 ```
 
-#### parameters
+#### 参数
 
-- `name`: the name of a privateparty role. Automatically connects to the endpoints defined on the privateparty backend with the same name.
-- `payload`: **(optional)** additional payload that will be passed to the Privateparty server. The Privateparty server will be able to inspect `req.body.payload` in its authorization logic.
-- `options`: **(optional)** an object describes how the connection shall be made. includes the following attributes:
-  - `fresh`: whether the login should ask the user to (re-)connect a wallet from the wallet list, or to use the previously connected wallet if still connected
-    - if `true`, the login attempt always displays all the wallets from the list and lets the user select one
-    - if `false`, tries to immediately use a previously selected wallet to skip the wallet selection step (This is the default)
+- `name`：openavatar 角色名称。 自动连接到 openavatar 后端定义的同名端点。
+- `payload`：**（可选）** 将传递给 Privateparty 服务端的附加有效负载。 Privateparty 服务端将能够在其授权逻辑中检查“req.body.payload”。
+- `options`: **（可选）** 一个对象描述了如何建立连接。 包括以下属性：
+   - `fresh`：是否要求用户（重新）连接钱包列表中的钱包，如果仍然在连接，则使用先前连接的钱包
+     - 如果设置 `true`，显示列表钱包，并让用户选择一个
+     - 如果设置 `false`，跳过钱包选择步骤，使用之前选择的钱包（这是默认设置）
+     - 
+#### 返回值
 
-#### return value
+- `session`：此连接的已验证和已授权会话对象。
+   - `account`：已验证的帐户
+   - `expiresIn`：自发布时间 (`iat`) 以来，会话有效时长，以秒为单位。 （默认：60 * 60 * 24 * 30，或 30 天）
+   - `jwt`：完整的 JWT 字符串
+   - `auth`: **（可选）** 如果需要，由openavatar服务器设置的附加属性。 仅当调用 `party.add()` 时从 `authorize()` 回调返回某些内容时才包括在内。
 
-- `session`: The authenticated and authorized session object for this connection.
-  - `account`: the authenticated account
-  - `expiresIn`: how long this session will be valid for since the issued time (`iat`), in seconds. (default: 60 * 60 * 24 * 30, or 30 days)
-  - `jwt`: the full JWT string
-  - `auth`: **(optional)** additional attributes set by the privateparty server if needed. Only included when you return something from the `authorize()` callback when calling `party.add()`.
+相同的 `session` 对象将存储在 cookie 中，随后可以通过 `party.session()` 访问
 
-The same `session` object will be stored inside the cookie and will be accessible subsequently via `party.session()`
+#### 示例
 
-#### examples
+##### 1. 基本链接
 
-##### 1. basic connection
-
-Let's assume the Privateparty backend has added a role named "user":
+假设 Privateparty对象 在后端添加了一个名为“user”的角色：
 
 ```javascript
 const party = new Privateparty()
@@ -2111,13 +2108,13 @@ party.app.get("/", party.auth("user"), (req, res) => {
 party.app.listen(3000)
 ```
 
-Above code will set up the default endpoints:
+上面代码设置默认端点：
 
 - `GET /privateparty/session`
 - `POST /privateparty/connect`
 - `POST /privateparty/disconnect`
 
-We can automatically connect to those endpoints simply by specifying the name of the role (`"user"`):
+可以简单地通过指定角色的名称（`"user"`）自动连接到这些端点：
 
 
 ```javascript
@@ -2127,11 +2124,11 @@ let session = await party.connect("user")
 if (session) document.write("logged in: " + session.account)
 ```
 
-##### 2. custom engine connection
+##### 2. 自定义引擎连接
 
-if you've set up multiple engines on the backend side, you can connect to the custom endpoints by initializing the `Privateparty` object with custom endpoints.
+如果在后端设置了多个引擎，可以通过使用自定义端点初始化 `Privateparty` 对象来连接到自定义端点。
 
-For example let's take an example with multiple roles ("user" and "admin"):
+例如，让我们以多个角色（“user”和“admin”）为例：
 
 ```javascript
 const party = new Privateparty()
@@ -2168,7 +2165,7 @@ party.app.get("/admin", party.auth("admin"), (req, res) => {
 party.app.listen(3000)
 ```
 
-Now, from the browser, lets try to login as admin:
+接下来，在浏览器中，我们尝试以admin管理员身份登录：
 
 ```javascript
 const party = new Privateparty()
@@ -2181,9 +2178,9 @@ The `party.connect("admin")`:
 2. makes a POST request to it
 3. the `authorize()` callback in the backend takes care of the authorization for the admin role
 
-##### 3. authenticate with custom payload
+##### 3. 使用自定义有效负载进行身份验证
 
-Often, the authorization logic may require more than just the user account. For example, the user may authenticate with a specific NFT (`tokenId` and `contract`), in which case the frontend needs to pass more data to the Privateparty server. Here's an example:
+通常，授权逻辑需要的不仅是用户帐户。 例如，用户还可以使用特定的 NFT（`tokenId` 和 `contract`）进行身份验证，在这种情况下，前端将更多数据传递给服务器端 Privateparty 对象。 这是一个例子：
 
 ```javascript
 const party = new Privateparty()
@@ -2193,7 +2190,7 @@ await party.connect("user", {
 })
 ```
 
-The server may implement an `authorize(req, account)` function in the engine that looks like this:
+服务器可以在引擎中实现一个 `authorize(req, account)` 函数，如下所示：
 
 ```javascript
 const Privateparty = require('privateparty')
@@ -2228,25 +2225,25 @@ const { app, express, auth } = new Privateparty({
 })
 ```
 
-Note that the additional payload is included under the attribute `req.body.auth`.
+请注意，附加的有效负载包含在属性“req.body.auth”下。
 
-##### 4. let users select an account from the wallet
+##### 4. 让用户从钱包中选择一个账户
 
-By default, Privateparty automatically uses the default account. But sometimes you may want to let the user select another account from the wallet.
+默认情况下，Privateparty 自动使用缺省帐户。 如果允许用户从钱包中选择不同的帐户进行登录。
 
-To connect this way, you can:
+可以用下例方式连接：
 
 ```javascript
 const party = new Privateparty()
 await party.connect("user", null, { fresh: true })
 ```
 
-Note:
+注意:
 
-- The second argument is `null` (we are not passing any payload)
-- The third argument (`options`) of the `connect()` method is `{fresh: true}`. This tells privateparty to make a fresh connection, which lets the user select from all the accounts in the wallet instead of the default one.
+- 第二个参数是 `null`（没有传递任何有效载荷）
+- `connect()` 方法的第三个参数（`options`）是`{fresh: true}`。 这告诉 openavatar 建立一个新的连接，用户可以从钱包帐户中进行选择，而不是选择确认帐户。
 
-Of course, you can do this while passing a payload too:
+当然，您也可以在传递有效负载的同时执行此操作：
 
 ```javascript
 const party = new Privateparty()
@@ -2257,34 +2254,33 @@ await party.connect(
 )
 ```
 
-Now the second argument is the `payload`, and the third argument is the `options`
+现在第二个参数是`payload`，第三个参数是`options`
 
 ---
 
 ### session()
 
-The `session()` method is used to get the current session.
+`session()` 方法用于获取当前会话。
 
-#### syntax
+#### 语法
 
 ```javascript
 let session = await party.session(name)
 ```
 
-#### parameters
+#### 参数
 
-- `name`: The name of the role for the session
+- `name`：会话的角色名称
 
-#### return value
+#### 返回值
 
-- `session`: the global session object for the specified name
-  - `account`: the authenticated account
-  - `expiresIn`: how long this session will be valid for since the issued time (`iat`), in seconds. (default: 60 * 60 * 24 * 30, or 30 days)
-  - `iat`: when this session was issued
-  - `auth`: **(optional)** additional attributes set by the privateparty server if needed. Only included when you return something from the `authorize()` callback when calling `party.add()`.
+- `session`：指定名称的全局会话对象
+   - `account`：经过身份验证的帐户
+   - `expiresIn`：自发布时间 (`iat`) 以来，会话有效时长，以秒为单位。 （默认：60 * 60 * 24 * 30，或 30 天）
+   - `iat`: 何时发出的会话
+   - `auth`: **（可选）** 如果需要，由openavatar服务器设置的附加属性。 仅当调用 `party.add()` 时从 `authorize()` 回调返回某些内容时才包括在内。
 
-
-#### examples
+#### 示例
 
 ```javascript
 let session = await party.session("user")
@@ -2317,55 +2313,54 @@ console.log(admin_session)
 
 ### disconnect()
 
-Clears the cookies and logs out of all sessions
+清除 cookie 并退出所有会话
 
-#### syntax
+#### 语法
 
 ```javascript
 await party.disconnect(name)
 ```
 
-#### parameters
+#### 参数
 
-- `name`: The name of the session to disconnect from
-
-#### return value
+- `name`：要断开的会话的名称
+- 
+#### 返回值
 
 - none
 
-
 ---
 
-## Node.js client
+## Node.js 客户端
 
-Privateparty utilizes [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token), which means you can take the same session created from the browser, and use it in a server setting, or any other non-browser setting.
+Privateparty 对象使用 [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token)，这意味着您可以使用从浏览器创建的相同会话，并在服务器设置或任何其他非浏览器设置中使用它。
 
-Here's how the node.js client differ from the browser client:
+以下是 node.js 客户端与浏览器客户端的不同之处：
 
-1. No cookie: Unlike the partyconnect browser client, which takes care of setting cookies automatically after the connection, the `partypass` node.js client simply makes a request to the privateparty server to create a JWT token. From that point on, it's up to you what to do with the JWT token.
-2. Use private key directly: The `partyconnect` browser client was built for a seamless in-browser usage, therefore uses whatever wallet is injected into the browser. But the `partypass` node.js client is primarily supposed to run in node.js setting, and there is no injected browser wallet. Therefore, to initialize `partypass` you must pass a private key, which will be used to sign messages.
+1. 没有cookie：与 partyconnect 浏览器客户端不同，它会在连接后自动设置cookie，而`partypass` node.js 客户端只是向  openavatar 服务端发出请求以创建JWT 令牌。从此时，如何处理 JWT 令牌由你决定。
+2. 直接使用私钥：`partyconnect`浏览器客户端是为浏览器无缝应用而构建的，因此使用注入浏览器的任何钱包。但是 `partypass` node.js 客户端主要应该运行在 node.js 设置中，并且没有注入浏览器钱包。因此，要初始化 `partypass`，您必须传递一个私钥，该私钥将用于对消息进行签名。
 
-Basically, the `partyconnect` library is primarily for in-browser usage, whereas `partypass` is a super minimal library for creating JWTs, using a private key you provided.
+基本上，“partyconnect”库主要用于浏览器内使用，而“partypass”是使用您提供的私钥创建 JWT 的最小库。
 
-### constructor
+### 构造函数
 
-#### syntax
+#### 语法
 
 ```javascript
 const pass = new Partypass(config)
 ```
 
-#### parameters
+#### 参数
 
 - `config`
-  - `host`: The privateparty host URL
-  - `key`: The private key in hex form (without a `0x` prefix)
+   - `host`：openavatar主机 URL
+   - `key`： 十六进制形式的私钥（没有`0x`前缀）
+   - 
+#### 返回值
 
-#### return value
+- `pass`: 初始化的partypass对象，可以用来创建会话
 
-- `pass`: an initialized partypass object, which can be used to create sessions
-
-#### example
+#### 示例
 
 ```javascript
 const pass = new Partypass({
@@ -2374,7 +2369,7 @@ const pass = new Partypass({
 })
 ```
 
-In most cases you do NOT want to hardcode private keys, so the code may actually look something like:
+在大多数情况下，不应硬编码私钥，因此代码实际上可能如下：
 
 ```javascript
 const pass = new Partypass({
@@ -2385,34 +2380,34 @@ const pass = new Partypass({
 
 ### create()
 
-Create a session using the initialized Partypass object
+使用初始化的 Partypass 对象创建会话
 
-> `await pass.create(name, payload)` is equivalent to `await pass.request(await pass.build(name), payload)`
-
-#### syntax
+> `await pass.create(name, payload)` 等价于 `await pass.request(await pass.build(name), payload)`
+> 
+#### 语法
 
 ```javascript
 const session = await pass.create(name, payload)
 ```
 
-#### parameters
+#### 参数
 
-- `name`: the name of a privateparty role. Automatically connects to the endpoints defined on the privateparty backend with the same name.
-- `payload`: **(optional)** additional payload that will be passed to the Privateparty server. The Privateparty server will be able to inspect `req.body.payload` in its authorization logic.
+- `name`：角色的名称。 自动连接到服务端定义的同名端点。
+- `payload`：**（可选）** 传递给 Privateparty 服务器对象的附加有效负载。 Privateparty 服务器对象将能够在其授权逻辑中检查“req.body.payload”。
 
-#### return value
+#### 返回值
 
-- `session`: The authenticated and authorized session object for this connection.
-  - `account`: the authenticated account
-  - `expiresIn`: how long this session will be valid for since the issued time (`iat`), in seconds. (default: 60 * 60 * 24 * 30, or 30 days)
-  - `jwt`: the full JWT string
-  - `auth`: **(optional)** additional attributes set by the privateparty server if needed. Only included when you return something from the `authorize()` callback when calling `party.add()`.
+- `session`：经过身份验证和授权的会话对象。
+   - `account`：经过身份验证的帐户
+   - `expiresIn`：自发布时间 (`iat`) 以来，会话有效时长，以秒为单位。 （默认：60 * 60 * 24 * 30，或 30 天）
+   - `jwt`：完整的 JWT 字符串
+   - `auth`: **（可选）** 如果需要，由服务器设置的附加属性。 仅当您在调用 `party.add()` 时从 `authorize()` 回调返回某些内容时才包括在内。
 
-The same `session` object will be stored inside the cookie and will be accessible subsequently via `party.session()`
+相同的 `session` 对象将存储在 cookie 中，随后可以通过 `party.session()` 访问
 
-#### examples
+#### 示例
 
-Let's assume the Privateparty backend has added a role named "user":
+假设 Privateparty 服务端对象 添加了一个名为“user”的角色：
 
 ```javascript
 // server.js
@@ -2425,7 +2420,7 @@ party.app.get("/", party.auth("user"), (req, res) => {
 party.app.listen(3000)
 ```
 
-Now create a client that will make a request to above privateparty server, as `client.js`:
+现在创建一个客户端，向上面的Privateparty服务器对象发出请求，作为`client.js`：
 
 ```javascript
 // client.js
@@ -2438,74 +2433,73 @@ let session = await pass.create("user")
 console.log(session)
 ```
 
-and run `node client`. You will get a session object with a JWT included.
+运行 “node 客户端”。 获得包含 JWT 的会话对象。
 
 
 ### session()
 
-check if the session has expired or not
+检查会话是否已过期
 
-#### syntax
+#### 语法
 
 ```javascript
 const session = await pass.session(name)
 ```
 
-#### parameters
+#### 参数
 
-- `name`: the name of the role
+- `name`: 角色的名称
 
-#### return value
+#### 返回值
 
-- `session`: returns the session info for the `name` role. If expired, returns `null`.
-
+- `session`: 返回 `name` 角色的会话信息。 如果过期，则返回 `null`。
 
 ### build()
 
-build a signed request to send to a privateparty server.
+构建一个签名请求以发送到 openavatar 服务器。
 
-> a `create()` call is equivalent to calling `build()` and then calling `request()` 
-
-#### syntax
+>  `create()` 调用等效于调用 `build()` + 继续调用 `request()`
+> 
+#### 语法
 
 ```javascript
 const req = await pass.build(name)
 ```
 
-#### parameters
+#### 参数
 
-- `name`: the name of the role
+- `name`: 角色名称
+- 
+#### 返回值
 
-#### return value
-
-- `req`: the prepared request object. This can be sent to the associated privateparty server (must be the same host as the connected `host`)
-  - `str`: the nonce message that was signed
-  - `sig`: the signature (personal signature)
-  - `url`: the endpoint to send the request to
+- `req`：准备好的请求对象。 可以发送到相关的openavatar 服务器（即已连接主机）
+   - `str`：已签名的 nonce 消息
+   - `sig`：签名（个人签名）
+   - `url`：请求发送到的端点
 
 
 ### request()
 
-send a built request created with the `build()` method to get the corresponding session back from the privateparty server
+发送使用 `build()` 方法创建的构建请求，以从openavatar服务器获取相应的会话
 
-#### syntax
+#### 语法
 
 ```javascript
 const session = await pass.request(req, payload)
 ```
 
-#### parameters
+#### 参数
 
-- `req`: the prepared request object created with `pass.build()`. This can be sent to the associated privateparty server (must be the same host as the connected `host`)
-  - `str`: the nonce message that was signed
-  - `sig`: the signature (personal signature)
-  - `url`: the endpoint to send the request to
-- `payload`: **(optional)** an extra payload to send to the privateparty server.
+- `req`：使用`pass.build()`创建的准备好的请求对象。 可以发送到相关的openavatar服务器（与已连接主机相同的主机）
+   - `str`：已签名的 nonce 消息
+   - `sig`：签名（个人签名）
+   - `url`：将请求发送到的端点
+- `payload`: **（可选）** 一个额外的有效载荷发送到服务端。
 
-#### return value
+#### 返回值
 
-- `session`: returns the created session info for the `name` role.
-  - `account`: the authenticated account
-  - `expiresIn`: how long this session will be valid for since the issued time (`iat`), in seconds. (default: 60 * 60 * 24 * 30, or 30 days)
-  - `jwt`: the full JWT string
-  - `auth`: **(optional)** additional attributes set by the privateparty server if needed. Only included when you return something from the `authorize()` callback when calling `party.add()`.
+- `session`：返回`name`角色创建的会话信息。
+   - `account`：经过身份验证的帐户
+   - `expiresIn`：自发布时间 (`iat`) 以来，会话有效时长，以秒为单位。 （默认：60 * 60 * 24 * 30，或 30 天）
+   - `jwt`：完整的 JWT 字符串
+   - `auth`: **（可选）** 如果需要，由openavatar设置的附加属性。 仅当调用 `party.add()` 时从 `authorize()` 回调返回某些内容时才包括在内。
