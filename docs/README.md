@@ -4,13 +4,13 @@
 
 OpenAvatar 是全球第一个可视化 Web3 DID协议
 
-OpenAvatar-SDK 是 OPENAVATAR 的一个开源组件，它是从Privateparty库派生的，是一个开源框架，可以非常容易地构建区块链认证的 Web3 应用程序。
+OpenAvatar-SDK 是 OPENAVATAR 的一个开源组件，它是从Privateparty库派生的开源框架，可以非常容易地构建区块链认证的 Web3 应用程序。
 
-只需几行代码，您就可以构建具有非常复杂的钱包身份验证/授权逻辑的 Web 应用程序。
+只需几行代码，即可以搭建出具有复杂(钱包身份验证/授权)逻辑的 Web3 应用程序。
 
 ![ppclient.png](ppclient.png)
 
-The result:
+结果如下：
 
 ![login.gif](login.gif)
 
@@ -18,29 +18,28 @@ The result:
 1. **身份验证：** 使用区块链钱包签名登录
 2. **授权：** 根据区块链状态或链下查询授权访问您的页面
 3. **简单：** 只需一行 JavaScript 代码即可设置。 没有复杂的步骤。
-4. **开源：** 它是一个 100% 开源框架，没有第三方API。
+4. **开源：** 100% 开源框架，没有第三方API。
 
-## 你能用 OpenAvatar-SDK 做什么?
+## OpenAvatar-SDK 能做什么?
 
-OpenAvatar-SDK 只是用密码学和区块链状态取代了传统的身份验证方法。
+OpenAvatar-SDK 利用密码学和区块链状态数据，取代传统的身份验证方法。
 
-这意味着您可以构建任何您可以想象的应用。 您只是用 OpenAvatar-SDK 替换传统的用户数据库。
+这意味着我们可以构建任何想象的应用。 您只是用 OpenAvatar-SDK 认证方式替换传统的用户数据库。
 
-1. **简单的身份验证：** 适合知道当前登录钱包账户的的Web3应用程序（允许任何人使用钱包登录）
+1. **简单身份验证：**  使用Web3钱包登录应用程序（允许任何人使用钱包登录）
 2. **仅限邀请的应用程序：** 仅允许地址列表中的人登录
-3. **基于 NFT 的授权：** 仅允许基于钱包拥有的 NFT 所有权登录
-4. **基于 ERC20 的授权：** 仅允许基于钱包拥有的 ERC20 代币登录
-5. **空投：** 可以通过仅授权曾经与某个合约交互过的地址来实施空投。
-6. **More：** 基本上可以根据任何区块链查询实现授权。
+3. **基于 NFT 的授权：** 根据钱包拥有的 NFT 登录
+4. **基于 ERC20 的授权：** 基于钱包拥有的 ERC20 代币登录
+5. **空投：** 可以通过曾与某个合约交互过的地址来实施空投。
+6. **More：** 根据任何区块链查询实现授权。
 
 
 ## 社群支持
 
 提问或反馈：:
 
-1. Twitter: https://twitter.com/skogard
-2. Discord: https://discord.gg/BZtp5F6QQM
-3. GitHub: https://github.com/privatepart
+1. Twitter: https://twitter.com/@yielddao
+2. GitHub: https://github.com/openavatar
 
 ---
 
@@ -51,7 +50,7 @@ OpenAvatar-SDK 只是用密码学和区块链状态取代了传统的身份验�
 服务端有两个步骤要做：
 
 1. **设置后端：** `privateparty` 模块让您轻松设置受区块链钱包签名保护的 [express.js]服务器(https://expressjs.com/) 。
-2. **连接到后端：** 设置后端后，您可以使用 `partyconnect` 库从浏览器连接到它。
+2. **连接后端：** 设置后端后，您可以使用 `partyconnect` 库从浏览器进行连接。
 
 首先安装依赖
 
