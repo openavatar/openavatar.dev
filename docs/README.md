@@ -2,9 +2,10 @@
 
 ## 什么是 OpenAvatar-SDK ?
 
-OpenAvatar 是全球第一个可视化 Web3 DID协议
+OpenAvatar 是全球第一个可视化 Avatar Web3 DID协议
 
-OpenAvatar-SDK 是 OPENAVATAR 的一个开源组件，它是从Privateparty库派生的开源框架，可以非常容易地构建区块链认证的 Web3 应用程序。
+OpenAvatar-SDK 是 OPENAVATAR 的一个开源组件，它是从Privateparty库派生的开源框架，OpenAvatar-SDK 在服务端运行 Privateparty 对象实例，可以非常容易地构建区块链认证的 Web3 应用程序。
+
 
 只需几行代码，即可以搭建出具有复杂(钱包身份验证/授权)逻辑的 Web3 应用程序。
 
@@ -146,7 +147,7 @@ node index
 
 到目前为止，我们刚刚使用了桌面浏览器上安装的默认钱包（Metamask）。 现在让我们看看我们如何支持移动钱包。
 
-为了支持移动钱包，我们将使用 [Walletconnect](https://walletconnect.com/)。 您无需学习如何使用 Walletconnect。 在创建 `Privateparty` 实例时，您只需要传递一个名为 `walletconnect` 的属性，如下所示：
+为了支持移动钱包，我们将使用 [Walletconnect](https://walletconnect.com/)。 您无需学习如何使用 Walletconnect。 在创建 `Privateparty` 对象实例时，您只需要传递一个名为 `walletconnect` 的属性，如下所示：
 
 ```javascript
 const party = new Privateparty({
